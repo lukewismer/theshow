@@ -8,30 +8,27 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.metrics import precision_score, recall_score
 import joblib
 
-# 1) Device
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# 2) Load + coerce
 df = (
     pd.read_csv("train.csv", dtype={"uuid": str}, low_memory=False)
       .apply(pd.to_numeric, errors="coerce")
       .fillna(0)
 )
 
-# 3) Define your feature list (everything except these)
+
 exclude = [
     "uuid", "update", "ovr", "rarity", "new_rarity", "new_rank",
     "delta_rank", "name", "mlb_id", "display_secondary_positions"
 ]
 feature_cols = [c for c in df.columns if c not in exclude]
 
-# split into hitters vs pitchers
 groups = {
     "hitter":  df[df["is_hitter"]].reset_index(drop=True),
     "pitcher": df[~df["is_hitter"]].reset_index(drop=True)
 }
 
-# 4) Prep a single, global scaler/encoder on the full train set
 X_full   = df[feature_cols]
 num_cols = X_full.select_dtypes(include=np.number).columns.tolist()
 cat_cols = X_full.select_dtypes(exclude=np.number).columns.tolist()
@@ -42,7 +39,7 @@ encoder = (
     .fit(X_full[cat_cols])
 ) if cat_cols else None
 
-# 5) Save metadata so predictions will line up perfectly
+
 joblib.dump(feature_cols, "feature_cols.pkl")
 joblib.dump(num_cols,       "num_cols.pkl")
 joblib.dump(cat_cols,       "cat_cols.pkl")
@@ -50,7 +47,6 @@ joblib.dump(scaler,         "scaler.pkl")
 if encoder:
     joblib.dump(encoder,    "encoder.pkl")
 
-# --- Model definition & loss ---
 class BayesianRankNet(nn.Module):
     def __init__(self, in_dim, hiddens=[1024,512,256,128,64]):
         super().__init__()
@@ -81,13 +77,11 @@ class RosterDataset(Dataset):
     def __len__(self): return len(self.y)
     def __getitem__(self, i): return self.X[i], self.y[i]
 
-# 6) Train one model per role
 for role, subdf in groups.items():
     print(f"\n===== Training {role} model =====")
     X_df = subdf[feature_cols]
     y    = subdf["delta_rank"].astype(np.float32).values
 
-    # build X
     X_num = scaler.transform(X_df[num_cols])
     X_cat = encoder.transform(X_df[cat_cols]) if encoder else np.empty((len(X_df),0))
     X     = np.hstack([X_num, X_cat])
@@ -97,7 +91,6 @@ for role, subdf in groups.items():
         X_tr, y_tr = X[tr], y[tr]
         X_va, y_va = X[va], y[va]
 
-        # up-sample non-zero y
         w_tr    = np.where(y_tr != 0, 2.0, 1.0)
         sampler = WeightedRandomSampler(w_tr, len(w_tr), True)
         tr_loader = DataLoader(RosterDataset(X_tr, y_tr), batch_size=128, sampler=sampler)
@@ -119,7 +112,6 @@ for role, subdf in groups.items():
                 opt.step()
             sched.step()
 
-        # evaluate
         model.eval()
         preds, truths = [], []
         with torch.no_grad():
