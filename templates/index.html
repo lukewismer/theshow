@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roster Update Predictor</title>
+  <!-- Google Font: Oswald -->
+  <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Page background animation */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 20px),
+                  linear-gradient(135deg, #1d1b1b, #2a2a2a, #1d1b1b);
+      background-size: 20px 20px, 400% 400%;
+      animation: bgAnimation 20s ease infinite;
+    }
+    @keyframes bgAnimation {
+      0% { background-position: 0 0, 0% 50%; }
+      50% { background-position: 0 0, 100% 50%; }
+      100% { background-position: 0 0, 0% 50%; }
+    }
+
+    /* Header and separator */
+    h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2.5rem;
+      text-align: center;
+      background: linear-gradient(90deg, #007bff, #3399ff, #66b2ff, #3399ff, #007bff);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: wave 4s linear infinite;
+      margin: 20px 0 0;
+    }
+    .animated-separator {
+      width: 100%;
+      height: 3px;
+      border: none;
+      margin: 10px 0 20px;
+      background: linear-gradient(90deg, #007bff, #3399ff, #66b2ff, #3399ff, #007bff);
+      background-size: 200% 100%;
+      animation: wave 4s linear infinite;
+    }
+    @keyframes wave { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+    /* Rarity buttons */
+    .rarity-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .rarity-btn {
+      padding: 10px 20px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: filter 0.2s;
+    }
+    #common  { background: #cccccc; }
+    #bronze  { background: #cd7f32; color: #fff; }
+    #silver  { background: #c0c0c0; }
+    #gold    { background: #ffd700; }
+    #diamond { background: #b9f2ff; }
+    .rarity-btn:hover { filter: brightness(0.9); }
+
+    /* Hitters/Pitchers toggle */
+    #type-controls {
+      display: none;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .type-btn {
+      padding: 10px 20px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: filter 0.2s;
+      background: #007bff;
+      color: #fff;
+    }
+    .type-btn:hover { filter: brightness(0.9); }
+
+    /* Pagination controls */
+    #pagination-controls,
+    #pagination-bottom {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    #pagination-controls label,
+    #pagination-bottom span {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      color: #fff;
+    }
+    #pagination-controls select,
+    #pagination-bottom button {
+      padding: 6px 12px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      border: 1px solid #007bff;
+      border-radius: 4px;
+      background: none;
+      color: #007bff;
+      cursor: pointer;
+      transition: filter 0.2s, box-shadow 0.2s;
+    }
+    #pagination-controls select:hover,
+    #pagination-bottom button:hover {
+      filter: brightness(1.2);
+      box-shadow: 0 0 8px 2px rgba(0,123,255,0.7);
+    }
+
+    /* Fullscreen toggle */
+    #fullscreen-btn {
+      display: none;
+      margin: 10px auto;
+      padding: 6px 12px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      border: 1px solid #007bff;
+      border-radius: 4px;
+      background: none;
+      color: #007bff;
+      cursor: pointer;
+      transition: filter 0.2s, box-shadow 0.2s;
+      display: block;
+    }
+    #fullscreen-btn:hover {
+      filter: brightness(1.2);
+      box-shadow: 0 0 8px 2px rgba(0,123,255,0.7);
+    }
+
+    /* Table styling */
+    #players-table {
+      display: none;
+      overflow-x: auto;
+      margin: 20px auto;
+    }
+    .players-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 3px solid #007bff;
+      margin-bottom: 10px;
+    }
+    .players-table th,
+    .players-table td {
+      border: 2px solid #007bff;
+      padding: 12px;
+      text-align: center;
+      min-width: 120px;
+      color: #fff;
+    }
+    .players-table th {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      background: none;
+      background: linear-gradient(90deg, #007bff, #3399ff, #66b2ff, #3399ff, #007bff);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: wave 4s linear infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MLB The Show 25 Roster Update Predictor</h1>
+    <hr class="animated-separator" />
+    <div class="main-content">
+      <div class="sidebar">
+        <div class="rarity-buttons">
+          <button id="common" class="rarity-btn">Common</button>
+          <button id="bronze" class="rarity-btn">Bronze</button>
+          <button id="silver" class="rarity-btn">Silver</button>
+          <button id="gold" class="rarity-btn">Gold</button>
+          <button id="diamond" class="rarity-btn">Diamond</button>
+        </div>
+        <div id="type-controls">
+          <button id="hitters-btn" class="type-btn">Hitters</button>
+          <button id="pitchers-btn" class="type-btn">Pitchers</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pagination-controls">
+    <label for="search-input">Search:</label>
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Player name…"
+      style="padding:6px 12px; font-family:'Oswald'; font-size:1rem;
+             border:1px solid #007bff; border-radius:4px; color:#fff;
+             background:none; outline:none; transition:filter .2s;"/>
+
+      <label for="rows-per-page">Rows per page:</label>
+      <select id="rows-per-page">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+
+    <button id="fullscreen-btn">Toggle Full Screen</button>
+
+    <div id="players-table"></div>
+
+    <div id="pagination-bottom">
+      <button id="prev-page">Prev</button>
+      <button id="next-page">Next</button>
+      <span id="page-info"></span>
+    </div>
+  </div>
+
+
+
+
+
+
+  <script>
+    // Inject full dataset from Flask
+    const fullData = {{ full_data|tojson }};
+
+    // Column definitions for each type
+    const pitcherCols = [
+      { key: 'name', label: 'Name' },
+      {key: 'baked_img', label: 'Card'},
+      { key: 'old_rank', label: 'Overall' },
+      { key: 'old_rarity', label: 'Rarity' },
+      { key: 'mu_pitcher', label: 'Potential Upgrade/Downgrade' },
+      { key: 'sell_price', label: 'Sell Price' },
+      { key: 'buy_price', label: 'Buy Price' },
+      { key: 'price_above_qs', label: 'Risk' },
+      { key: 'season_era', label: 'ERA' },
+      { key: 'season_inningsPitched', label: 'IP' },
+      { key: 'season_strikeoutsPer9Inn', label: 'K/9' },
+      { key: 'season_walksPer9Inn', label: 'BB/9' },
+      { key: 'season_hitsPer9Inn', label: 'H/9' },
+      { key: '3wk_era', label: 'ERA (Last 3 Weeks)' },
+      { key: '3wk_inningsPitched', label: 'IP (Last 3 Weeks)' },
+      { key: '3wk_strikeoutsPer9Inn', label: 'K/9 (Last 3 Weeks)' },
+      { key: '3wk_walksPer9Inn', label: 'BB/9 (Last 3 Weeks)' },
+      { key: '3wk_hitsPer9Inn', label: 'H/9 (Last 3 Weeks)' }
+    ];
+
+    const hitterCols = [
+      { key: 'name', label: 'Name' },
+      {key: 'baked_img', label: 'Card'},
+      { key: 'old_rank', label: 'Overall' },
+      { key: 'old_rarity', label: 'Rarity' },
+      { key: 'mu_hitter', label: 'Potential Upgrade/Downgrade' },
+      { key: 'sell_price', label: 'Sell Price' },
+      { key: 'buy_price', label: 'Buy Price' },
+      { key: 'price_above_qs', label: 'Risk' },
+      { key: 'season_atBats', label: 'ABs' },
+      { key: 'season_avg', label: 'AVG' },
+      { key: 'season_strikeOuts', label: 'Ks' },
+      { key: 'season_ops', label: 'OPS' },
+      { key: 'season_homeRuns', label: 'HRs' },
+      { key: 'season_stolenBases', label: 'SBs' },
+      { key: 'season_stolenBasePercentage', label: 'SB%' },
+      { key: '3wk_atBats', label: 'ABs (Last 3 Weeks)' },
+      { key: '3wk_avg', label: 'AVG (Last 3 Weeks)' },
+      { key: '3wk_ops', label: 'OPS (Last 3 Weeks)' },
+      { key: '3wk_homeRuns', label: 'HRs (Last 3 Weeks)' },
+      { key: '3wk_strikeOuts', label: 'Ks (Last 3 Weeks)' },
+      { key: '3wk_stolenBases', label: 'SBs (Last 3 Weeks)' },
+      { key: '3wk_stolenBasePercentage', label: 'SB% (Last 3 Weeks)' }
+    ];
+
+    let searchTerm = '';
+    let currentPage = 1;
+    let rowsPerPage = 10;
+    let rarityData = [];
+    let lastData = [];
+    let lastType = null;
+
+    // Element refs
+    const rowsSelect = document.getElementById('rows-per-page');
+    const searchInput = document.getElementById('search-input'); 
+    const paginationControls = document.getElementById('pagination-controls');
+    const paginationBottom = document.getElementById('pagination-bottom');
+    const playersTableDiv = document.getElementById('players-table');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const typeControls = document.getElementById('type-controls');
+    const hittersBtn = document.getElementById('hitters-btn');
+    const pitchersBtn = document.getElementById('pitchers-btn');
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
+
+    searchInput.addEventListener('input', e => {
+        searchTerm = e.target.value.trim().toLowerCase();
+        currentPage = 1;
+        renderFiltered();
+    });
+
+    // Hide all interactive sections
+    function hideAll() {
+      typeControls.style.display = 'none';
+      paginationControls.style.display = 'none';
+      paginationBottom.style.display = 'none';
+      fullscreenBtn.style.display = 'none';
+      playersTableDiv.style.display = 'none';
+      searchInput.style.display = 'none';
+    }
+
+    // Show core table and controls
+    function showAll() {
+      paginationControls.style.display = 'flex';
+      searchInput.style.display = 'inline-block';
+      paginationBottom.style.display = 'flex';
+      fullscreenBtn.style.display = 'block';
+      playersTableDiv.style.display = 'block';
+    }
+
+    // Initial state
+    hideAll();
+
+    // Rarity selection
+    document.querySelectorAll('.rarity-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        
+        const id = btn.id;            // 'common', 'bronze', etc.
+        if (id === 'common') {
+            lastData = fullData.filter(r => r.old_rank < 65);
+        } else if (id === 'bronze') {
+            lastData = fullData.filter(r => r.old_rank >= 65 && r.old_rank <= 74);
+        } else if (id === 'silver') {
+            lastData = fullData.filter(r => r.old_rank >= 75 && r.old_rank <= 79);
+        } else if (id === 'gold') {
+            lastData = fullData.filter(r => r.old_rank >= 80 && r.old_rank <= 84);
+        } else if (id === 'diamond') {
+            lastData = fullData.filter(r => r.old_rank >= 85);
+        }
+        
+        rarityData = lastData.slice();
+        currentPage = 1;
+        lastType = null;
+        hideAll();
+        typeControls.style.display = 'flex';
+      });
+    });
+
+    // Type selection
+    hittersBtn.addEventListener('click', () => {
+      lastType = 'hitter';
+      lastData = rarityData.filter(r => r.is_hitter);
+      lastData.sort((a, b) => b.old_rank - a.old_rank);
+      currentPage = 1;
+      showAll();
+      renderFiltered();
+    });
+    pitchersBtn.addEventListener('click', () => {
+      lastType = 'pitcher';
+      lastData = rarityData.filter(r => !r.is_hitter);
+      // Added: sort common pitchers by Overall (old_rank) descending
+      lastData.sort((a, b) => b.old_rank - a.old_rank);
+      currentPage = 1;
+      showAll();
+      renderFiltered();
+    });
+
+
+    // Pagination events
+    rowsSelect.addEventListener('change', () => {
+      rowsPerPage = parseInt(rowsSelect.value, 10);
+      currentPage = 1;
+      renderFiltered();
+    });
+    prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderFiltered(); }});
+    nextBtn.addEventListener('click', () => {
+      const totalPages = Math.ceil(lastData.length / rowsPerPage);
+      if (currentPage < totalPages) { currentPage++; renderFiltered(); }
+    });
+
+    // Render current page of data and update total count
+    function renderFiltered() {
+      // Added: sort by Overall (old_rank) descending before pagination
+      lastData.sort((a, b) => b.old_rank - a.old_rank);
+      let base = [...lastData].sort((a, b) => b.old_rank - a.old_rank);
+
+      if (searchTerm) {
+        base = base.filter(r => r.name.toLowerCase().includes(searchTerm));
+      }
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const pageData = base.slice(start, end);
+      renderTable(pageData);
+
+      pageInfo.textContent = `Total cards: ${base.length}`;
+      // Update page indicator
+      const totalPages = Math.ceil(base.length / rowsPerPage) || 1;
+      document.getElementById('page-indicator').textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+
+    // Build and insert table rows
+    function renderTable(data) {
+      playersTableDiv.innerHTML = '';
+      const cols = lastType === 'hitter' ? hitterCols : pitcherCols;
+      const table = document.createElement('table'); table.className = 'players-table';
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      cols.forEach(c => {
+        const th = document.createElement('th'); th.textContent = c.label; headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow); table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        cols.forEach(c => {
+
+          const td = document.createElement('td')
+          if (c.key === 'baked_img' && row[c.key]) {
+            //render the image of the card
+            const img = document.createElement('img')
+            img.src = row[c.key];
+            img.alt = row.name;
+            img.className = 'card-img';
+            td.appendChild(img);
+
+          } else {
+            td.textContent = row[c.key] != null ? row[c.key] : '-';
+          }
+          tr.appendChild(td)
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody); playersTableDiv.appendChild(table);
+    }
+
+
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        playersTableDiv.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+  </script>
+
+
+
+
+
+
+
+</body>
+</html>
+</body>
+</html>
