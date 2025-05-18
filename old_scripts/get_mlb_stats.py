@@ -3,8 +3,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-INPUT_CSV   = "players_2025.csv"
-OUTPUT_CSV  = "players_with_stats_cur.csv"
+INPUT_CSV   = "../old_csv/players_2025.csv"
+OUTPUT_CSV  = "../old_csv/players_with_stats_cur.csv"
 
 def clean_splits(splits: dict) -> dict:
     for key in ("groundOutsToAirouts", "catchersInterference", "groundIntoDoublePlay"):
@@ -148,11 +148,11 @@ updates = [
 
 # Current prediction
 updates = [
-    ("2025_2", datetime(2025, 5, 8))
+    ("2025_2", datetime(2025, 5, 9))
 ]
 
 # Season start date for season‐to‐date queries
-SEASON_START = datetime(2025, 3, 1)
+SEASON_START = datetime(2025, 3, 28)
 
 # 2) Load your base roster
 players_df = pd.read_csv(INPUT_CSV)

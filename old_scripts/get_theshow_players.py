@@ -51,4 +51,5 @@ def get_all_live_series_cards_df(year):
     else:
         print("No new cards found.")
 
-get_all_live_series_cards_df(20)
+for year in [2025, 2024, 2023, 2023, 2022, 2021]:
+    get_all_live_series_cards_df(year)

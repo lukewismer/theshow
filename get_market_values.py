@@ -1,5 +1,8 @@
 import pandas as pd
 import requests
+from concurrent.futures import ThreadPoolExecutor
+import time
+import random
 
 url = "https://mlb25.theshow.com/apis/listing"
 df = pd.read_csv("data.csv")
@@ -27,42 +30,35 @@ def qs_value(ovr):
     if ovr >= 92: return 10000
     return 0
 
-metrics = {
-    "sell_price": [],
-    "buy_price": [],
-    "current_quick_sell": [],
-    "pred_quick_sell_value": [],
-    "low_qs_value": [],
-    "high_qs_value": [],
-    "pred_profit": [],
-    "price_above_qs": []
-}
-
-for _, row in df.iterrows():
-    f_url = f"{url}?uuid={row['uuid']}"
-    print(f_url)
-    data = requests.get(f_url).json()
+def fetch_metrics(row):
+    print(row.uuid)
+    time.sleep(random.uniform(0.1, 0.7))
+    data = requests.get(f"{url}?uuid={row.uuid}").json()
     sell = data["best_sell_price"]
-    buy = max(data["best_buy_price"], qs_value(row["old_rank"]))
-    cur = row["old_rank"]
-    if row["is_hitter"]:
-        pred = int(round(cur + row["mu_hitter"]))
-        low  = int(round(cur + row["low95_hitter"]))
-        high = int(round(cur + row["high95_hitter"]))
+    buy = max(data["best_buy_price"], qs_value(row.old_rank))
+    cur = row.old_rank
+    if row.is_hitter:
+        pred = int(round(cur + row.mu_hitter))
+        low  = int(round(cur + row.low95_hitter))
+        high = int(round(cur + row.high95_hitter))
     else:
-        pred = int(round(cur + row["mu_pitcher"]))
-        low  = int(round(cur + row["low95_pitcher"]))
-        high = int(round(cur + row["high95_pitcher"]))
-    metrics["sell_price"].append(sell)
-    metrics["buy_price"].append(buy)
-    metrics["current_quick_sell"].append(qs_value(cur))
-    metrics["pred_quick_sell_value"].append(qs_value(pred))
-    metrics["low_qs_value"].append(qs_value(low))
-    metrics["high_qs_value"].append(qs_value(high))
-    metrics["pred_profit"].append(qs_value(pred) - buy)
-    metrics["price_above_qs"].append(buy - qs_value(cur))
+        pred = int(round(cur + row.mu_pitcher))
+        low  = int(round(cur + row.low95_pitcher))
+        high = int(round(cur + row.high95_pitcher))
+    return {
+        "sell_price": sell,
+        "buy_price": buy,
+        "current_quick_sell": qs_value(cur),
+        "pred_quick_sell_value": qs_value(pred),
+        "low_qs_value": qs_value(low),
+        "high_qs_value": qs_value(high),
+        "pred_profit": qs_value(pred) - buy,
+        "price_above_qs": buy - qs_value(cur)
+    }
 
-for col, vals in metrics.items():
-    df[col] = vals
+with ThreadPoolExecutor(max_workers=4) as exe:
+    results = list(exe.map(fetch_metrics, df.itertuples(index=False)))
 
+metrics_df = pd.DataFrame(results)
+df = pd.concat([df.reset_index(drop=True), metrics_df], axis=1)
 df.to_csv("data_with_metrics.csv", index=False)

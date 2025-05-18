@@ -43,8 +43,8 @@ def merge_roster_updates_for_year(year: int):
 
     # filenames & API base
     if year == 0:
-        input_csv  = "players_with_stats_cur.csv"
-        output_csv = "players_with_stats_merged_cur.csv"
+        input_csv  = "../old_csv/players_with_stats_cur.csv"
+        output_csv = "../old_csv/players_with_stats_merged_cur.csv"
     else:
         input_csv  = f"players_with_stats_{year}.csv"
         output_csv = f"players_with_stats_merged_{year}.csv"

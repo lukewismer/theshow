@@ -6,14 +6,14 @@ import joblib
 z = 1.96
 
 # 1) Load metadata
-feature_cols = joblib.load("feature_cols.pkl")
-num_cols     = joblib.load("num_cols.pkl")
-cat_cols     = joblib.load("cat_cols.pkl")
-scaler       = joblib.load("scaler.pkl")
-encoder      = joblib.load("encoder.pkl")
+feature_cols = joblib.load("../model/feature_cols.pkl")
+num_cols     = joblib.load("../model/num_cols.pkl")
+cat_cols     = joblib.load("../model/cat_cols.pkl")
+scaler       = joblib.load("../model/scaler.pkl")
+encoder      = joblib.load("../model/encoder.pkl")
 
 # 2) Read the full original CSV
-df_orig = pd.read_csv("players_with_stats_merged_cur.csv", dtype={"uuid": str})
+df_orig = pd.read_csv("../old_csv/players_with_stats_merged_cur.csv", dtype={"uuid": str})
 
 # 3) Build a working copy for features
 df_feat = df_orig.copy()
@@ -48,7 +48,7 @@ class BayesianRankNet(torch.nn.Module):
         return self.mu(h), self.lv(h).clamp(-10,2)
 
 for role in ["hitter","pitcher"]:
-    ckpt   = torch.load(f"best_model_zero_infl_{role}.pt", map_location=device)
+    ckpt   = torch.load(f"../model/best_model_zero_infl_{role}.pt", map_location=device)
     in_dim = ckpt["body.0.weight"].shape[1]
     model  = BayesianRankNet(in_dim).to(device)
     model.load_state_dict(ckpt)
@@ -69,5 +69,5 @@ for role in ["hitter","pitcher"]:
     df_orig[f"high95_{role}"]     = high95
 
 # then save
-df_orig.to_csv("players_with_stats_with_preds.csv", index=False)
+df_orig.to_csv("../data.csv", index=False)
 print("Saved players_with_stats_with_preds.csv with original metadata + predictions.")
