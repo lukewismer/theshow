@@ -5,42 +5,48 @@ import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from data_processing.hitter_game_logs import HitterGameLogs
 from data_processing.pitcher_game_logs import PitcherGameLogs
+import os
 
 
-class StatsFetcher():
-
+class StatsFetcher:
     def __init__(self):
-        self.hitter_game_logs = HitterGameLogs()
         self.pitcher_game_logs = PitcherGameLogs()
         self.base_url = "https://statsapi.mlb.com/api/v1"
         self.sess = requests.Session()
 
     def run(self, file):
-        master = pd.read_csv(file)
-        hitters = master[master["is_hitter"]]
-        #pitchers = master[~master["is_hitter"]]
+        master = pd.read_csv(file, dtype=str)
+        pitchers = master[master["is_hitter"] == "False"]
+        out_path = "pitcher_stats.csv"
 
-        final_hitters = self._parallel_process(
-            hitters, self._process_one_hitter, max_workers=8
-        )
-        final_hitters.to_csv("hitter_stats_cur.csv", index=False)
-        #final_pitchers = self._parallel_process(
-            #pitchers, self._process_one_pitcher, max_workers=8
-        #)
-        
-        #final_pitchers.to_csv("pitcher_stats.csv", index=False)
+        if os.path.exists(out_path):
+            done = pd.read_csv(out_path, dtype=str)
+            processed = set(zip(done["mlb_id"], done["date"]))
+        else:
+            processed = set()
 
-    def _parallel_process(self, df, fn, max_workers=8):
-        """
-        Generic: run `fn(row)` for each row in df, in parallel.
-        `fn` returns a single‐row DataFrame.
-        """
+        rows = []
+        to_do = pitchers[
+            ~pitchers.apply(lambda r: (r["mlb_id"], r["date"]) in processed, axis=1)
+        ]
+
+        for start in range(0, len(to_do), 1000):
+            batch = to_do.iloc[start : start + 1000]
+            result = self._parallel_process(batch, self._process_one_pitcher, max_workers=8)
+            result.to_csv(
+                out_path,
+                mode="a",
+                index=False,
+                header=not os.path.exists(out_path)
+            )
+            rows.append(result)
+
+        return pd.concat(rows, ignore_index=True)
+
+    def _parallel_process(self, df, fn, max_workers=6):
         rows = []
         with ThreadPoolExecutor(max_workers=max_workers) as exe:
-            future_to_idx = {
-                exe.submit(fn, idx, row): idx
-                for idx, row in df.iterrows()
-            }
+            future_to_idx = {exe.submit(fn, idx, row): idx for idx, row in df.iterrows()}
             for fut in as_completed(future_to_idx):
                 try:
                     rows.append(fut.result())
@@ -49,6 +55,17 @@ class StatsFetcher():
                     name = df.iloc[idx]["name"]
                     print(f"⚠️ Skipping {name} due to error: {e}")
         return pd.concat(rows, ignore_index=True)
+
+    def _process_one_pitcher(self, idx, row):
+        print(row["name"])
+        gl_df = self.pitcher_game_logs.run(row["mlb_id"], row["date"], row["year"])
+        career_df = self.get_pitcher_career(row["mlb_id"], row["year"])
+        return pd.concat(
+            [row.to_frame().T.reset_index(drop=True),
+             gl_df.reset_index(drop=True),
+             career_df.reset_index(drop=True)],
+            axis=1
+        )
 
     def _process_one_hitter(self, idx, row):
         print(row["name"])
@@ -102,8 +119,9 @@ class StatsFetcher():
         return final
 
     def get_hitter_career(self, player_id, cutoff_year):
-        years     = list(range(2000, datetime.datetime.now().year + 1))
-        seasons   = years[:years.index(cutoff_year)]
+        cutoff_year = int(cutoff_year)
+        current_year = datetime.datetime.now().year
+        seasons = [y for y in range(2000, current_year + 1) if y < cutoff_year]
         season_str = ",".join(str(y) for y in seasons)
 
         url = (
@@ -207,8 +225,9 @@ class StatsFetcher():
         with columns prefixed ovr_{split}_{stat}.  Safely returns zeros if
         no data is present.
         """
-        years     = list(range(2000, datetime.datetime.now().year + 1))
-        seasons   = years[:years.index(cutoff_year)]
+        cutoff_year = int(cutoff_year)
+        current_year = datetime.datetime.now().year
+        seasons = [y for y in range(2000, current_year + 1) if y < cutoff_year]
         season_str = ",".join(str(y) for y in seasons)
 
         risp_url = (

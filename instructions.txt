@@ -1,0 +1,11 @@
+Redeploy cloud functions:
+firebase deploy --only functions:scheduled_pipeline
+or
+gcloud functions deploy scheduled_pipeline \
+  --gen2 \
+  --region=us-central1 \
+  --runtime=python310 \
+  --source=. \
+  --entry-point=scheduled_pipeline \
+  --trigger-topic=pipeline-trigger \
+  --timeout=540s

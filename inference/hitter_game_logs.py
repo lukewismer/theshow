@@ -37,7 +37,6 @@ class HitterGameLogs:
         return pd.DataFrame([row])
     
     def get_plays(self, game_id):
-        # return from cache or fetch once
         if game_id not in self._pbp_cache:
             resp = self.sess.get(f"{self.base_url}/game/{game_id}/playByPlay").json()
             self._pbp_cache[game_id] = resp["allPlays"]
@@ -46,7 +45,6 @@ class HitterGameLogs:
     def process_games(self, player_id, game_ids):
         splits = {"vl": [], "vr": [], "risp": []}
 
-        # fetch each game’s allPlays exactly once, in parallel
         with ThreadPoolExecutor(max_workers=6) as exe:
             futures = {exe.submit(self.get_plays, gid): gid for gid in game_ids}
             for fut in as_completed(futures):
@@ -156,7 +154,6 @@ class HitterGameLogs:
         ).json()
 
         stats = res.get("stats") or []
-        # if no stats or no splits, return empty lists
         if not stats or not stats[0].get("splits"):
             return [], [], []
 
