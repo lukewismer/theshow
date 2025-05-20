@@ -1,0 +1,59 @@
+/* Sophisticated Dark Theme */
+:root {
+    --bg-dark: #1a1a1a;        /* Base dark gray */
+    --bg-medium: #252525;      /* Secondary gray */
+    --bg-light: #303030;       /* Tertiary gray */
+    --accent-primary: #4db8b8; /* Muted teal */
+    --accent-secondary: #ff9f43; /* Soft orange */
+    --text-primary: #e8e8e8;
+    --text-secondary: #b0b0b0;
+    --border-radius: 8px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.navbar {
+    background-color: var(--bg-medium);
+    padding: 1rem 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+.nav-logo {
+    color: var(--accent-primary);
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--accent-secondary);
+}
