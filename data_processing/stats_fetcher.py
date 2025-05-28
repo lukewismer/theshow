@@ -10,14 +10,14 @@ import os
 
 class StatsFetcher:
     def __init__(self):
-        self.pitcher_game_logs = PitcherGameLogs()
+        self.hitter_game_logs = HitterGameLogs()
         self.base_url = "https://statsapi.mlb.com/api/v1"
         self.sess = requests.Session()
 
     def run(self, file):
         master = pd.read_csv(file, dtype=str)
-        pitchers = master[master["is_hitter"] == "False"]
-        out_path = "pitcher_stats.csv"
+        hitters = master[master["is_hitter"] == "True"]
+        out_path = "hitter_stats.csv"
 
         if os.path.exists(out_path):
             done = pd.read_csv(out_path, dtype=str)
@@ -26,13 +26,13 @@ class StatsFetcher:
             processed = set()
 
         rows = []
-        to_do = pitchers[
-            ~pitchers.apply(lambda r: (r["mlb_id"], r["date"]) in processed, axis=1)
+        to_do = hitters[
+            ~hitters.apply(lambda r: (r["mlb_id"], r["date"]) in processed, axis=1)
         ]
 
         for start in range(0, len(to_do), 1000):
             batch = to_do.iloc[start : start + 1000]
-            result = self._parallel_process(batch, self._process_one_pitcher, max_workers=8)
+            result = self._parallel_process(batch, self._process_one_hitter, max_workers=8)
             result.to_csv(
                 out_path,
                 mode="a",

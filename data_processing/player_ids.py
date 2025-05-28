@@ -53,7 +53,7 @@ def resolve_ids(input_csv, season, cache_dir='.'):
     and appends results into players.csv (deduped on uuid+season).
     Returns the path to players.csv.
     """
-    master_file = os.path.join(cache_dir, 'players_cur.csv')
+    master_file = os.path.join(cache_dir, 'players.csv')
     base_url    = 'https://statsapi.mlb.com'
 
     if os.path.exists(master_file):

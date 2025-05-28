@@ -2,17 +2,13 @@ import os
 import time
 import requests
 import pandas as pd
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 def get_live_series(year, cache_dir='.'):
-    """
-    Fetches all Live Series cards for a given year and
-    appends them into one live_series.csv (with a `year` column).
-    Returns the path to live_series.csv.
-    """
     base_url = f'https://mlb{str(year)[2:]}.theshow.com/apis'
-    out_file = os.path.join(cache_dir, 'live_series_cur.csv')
+    out_file = os.path.join(cache_dir, 'live_series.csv')
 
-    # load existing file if present
     if os.path.exists(out_file):
         existing = pd.read_csv(out_file, dtype=str)
         seen = set(existing['uuid'])
@@ -21,36 +17,39 @@ def get_live_series(year, cache_dir='.'):
         seen = set()
 
     session = requests.Session()
+    retries = Retry(
+        total=10,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504, 404],
+        allowed_methods=["GET"]
+    )
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    session.mount('http://', HTTPAdapter(max_retries=retries))
+
     page = 1
     new_cards = []
+
     while True:
         print(f"Fetching Live Series page {page} for {year}…")
-        resp = session.get(
-            f"{base_url}/items?type=mlb_card&page={page}",
-            timeout=80
-        )
+        resp = session.get(f"{base_url}/items?type=mlb_card&page={page}", timeout=180)
         resp.raise_for_status()
         items = resp.json().get('items', [])
         if not items:
             break
 
-        for card in items:
-            uid = card.get('uuid')
-            if card.get('series') == 'Live' and uid not in seen:
-                card['year'] = year
-                new_cards.append(card)
+        for c in items:
+            uid = c.get('uuid')
+            if c.get('series') == 'Live' and uid not in seen:
+                c['year'] = year
+                new_cards.append(c)
                 seen.add(uid)
 
         page += 1
         time.sleep(0.2)
 
     if new_cards:
-        # concat new with existing
         df = pd.concat([existing, pd.DataFrame(new_cards)], ignore_index=True)
-
-        df = df.drop_duplicates(subset=['uuid', 'year'], keep='first')
-
-        # drop columns we don't need (won't error if missing)
+        df.drop_duplicates(subset=['uuid', 'year'], inplace=True)
         drop_cols = [
             "type", "img", "sc_baked_img", "short_description", "series",
             "series_texture_name", "series_year", "display_secondary_positions",
@@ -60,9 +59,7 @@ def get_live_series(year, cache_dir='.'):
             "has_rank_change", "event", "set_name", "is_live_set",
             "ui_anim_index", "locations"
         ]
-        df = df.drop(columns=drop_cols, errors='ignore')
-
-        # overwrite the master CSV
+        df.drop(columns=drop_cols, errors='ignore', inplace=True)
         df.to_csv(out_file, index=False)
         print(f"Appended {len(new_cards)} cards for {year} → {out_file}")
     else:

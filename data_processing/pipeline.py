@@ -9,16 +9,16 @@ from data_processing.stats_fetcher import StatsFetcher
 def run(years, cache_dir='.'):
     for year in years:
         print(f"Processing {year}")
-        ls = get_live_series(year, cache_dir)
-        ls = "live_series.csv"
-        pid = resolve_ids(ls, year, cache_dir)
-        pid = "players.csv"
-        merged = merge_updates(pid, year, cache_dir)
+        #ls = get_live_series(year, cache_dir)
+        #ls = "live_series.csv"
+        #pid = resolve_ids(ls, year, cache_dir)
+        #pid = "players.csv"
+        #merged = merge_updates(pid, year, cache_dir)
     merged = "players_updates.csv"
     stats_fetcher = StatsFetcher()
     stats = stats_fetcher.run(merged)
     print(f"Completed {year}, output → {merged}")
 
 if __name__=='__main__':
-    years=[2025]
+    years=[2023]
     run(years)

@@ -55,6 +55,7 @@ UPDATE_IDS = {
     ],
     2025: [
         ("2025_1",  5,  "05/02/2025"),
+        ("2025_2",  8,  "05/23/2025"),
     ],
     0: [
         ("current", None, datetime.now().strftime("%m/%d/%Y")),
@@ -76,7 +77,7 @@ name_map = {
     "STA": "stamina_new"
 }
 
-MASTER_UPDATES = "players_updates_cur.csv"
+MASTER_UPDATES = "players_updates.csv"
 
 def merge_updates(input_csv, year, cache_dir='.'):
     master_path = os.path.join(cache_dir, MASTER_UPDATES)

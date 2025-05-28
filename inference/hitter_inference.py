@@ -19,6 +19,7 @@ Z           = 1.96
 def main():
     df = pd.read_csv(INPUT_CSV, low_memory=False)
     df = df[df.is_hitter & (df['3wk_gp'] > 0)]
+    df["old_rank"] = df["ovr"]
 
     meta_cols = [c for c in ['uuid','name','old_rank'] if c in df.columns]
     df_meta = df[meta_cols].reset_index(drop=True)
