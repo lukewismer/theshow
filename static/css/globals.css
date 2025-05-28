@@ -3,8 +3,8 @@
     --bg-dark: #1a1a1a;        /* Base dark gray */
     --bg-medium: #252525;      /* Secondary gray */
     --bg-light: #303030;       /* Tertiary gray */
-    --accent-primary: #4db8b8; /* Muted teal */
-    --accent-secondary: #ff9f43; /* Soft orange */
+    --accent-primary: #1263dd; 
+    --accent-secondary: #e5e4e2; 
     --text-primary: #e8e8e8;
     --text-secondary: #b0b0b0;
     --border-radius: 8px;
@@ -41,6 +41,15 @@ body {
     font-weight: 700;
     font-size: 1.5rem;
     text-decoration: none;
+    display: flex;
+}
+
+.logo-part-1 {
+    color: var(--accent-secondary); /* Orange */
+}
+
+.logo-part-2 {
+    color: var(--accent-primary); /* Teal */
 }
 
 .nav-links {
@@ -52,8 +61,39 @@ body {
     color: var(--text-secondary);
     text-decoration: none;
     transition: color 0.3s ease;
+    
+    
 }
 
 .nav-link:hover {
     color: var(--accent-secondary);
+}
+
+/* Add this to your existing nav styles */
+.nav-link.active {
+    font-weight: 600;
+    color: var(--accent-secondary) !important;
+    position: relative;
+    
+}
+
+.nav-link.active::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0px; 
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent-secondary);
+    border-radius: 2px;
+}
+
+
+/* Prevent layout shift from scrollbar */
+html {
+    overflow-y: scroll; /* Always show vertical scrollbar */
+}
+
+body {
+    overflow-x: hidden; /* Prevent horizontal shifting */
 }

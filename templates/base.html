@@ -11,12 +11,25 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-logo">RosterPredict</a>
+            <a href="/" class="nav-logo">
+                <span class="logo-part-1">Roster</span>
+                <span class="logo-part-2">Predict</span>
+            </a>
+
+
             <div class="nav-links">
-                <a href="{{ url_for('index') }}" class="nav-link">Home</a>
-                <a href="#predictions" class="nav-link">Predictions</a>
-                <a href="#about" class="nav-link">About</a>
-                <a href="#contact" class="nav-link">Contact</a>
+                <a href="{{ url_for('index') }}" 
+                   class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                   Home
+                </a>
+                <a href="{{ url_for('predictions') }}" 
+                    class="nav-link {% if request.endpoint == 'predictions' %}active{% endif %}">
+                    Predictions
+                </a>
+                <a href="{{ url_for('investment') }}" 
+                    class="nav-link {% if request.endpoint == 'investment' %}active{% endif %}">
+                    Investment Sheet</a>
+                <a href="#contact" class="nav-link">Community</a>
             </div>
         </div>
     </nav>

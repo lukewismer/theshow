@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import pandas as pd
 import io
 import firebase_admin
@@ -16,6 +16,7 @@ def load_web_data():
     content = blob.download_as_string()
     return pd.read_csv(io.BytesIO(content))
 
+
 app = Flask(__name__)
 
 df = load_web_data()
@@ -25,9 +26,25 @@ full_data = df.to_dict(orient="records")
 def index():
     return render_template("index.html", full_data=full_data)
 
+@app.route("/signup")
+def signup():
+    return render_template("signup.html")
+
 @app.route("/login")
 def login():
-    return None
+    return render_template("login.htlm")
+
+@app.route("/predictions")
+def predictions():
+    return render_template("predictions.html", full_data=full_data)
+
+@app.route("/investment")
+def investment():
+    return render_template("investment.html", full_data=full_data)
+
+@app.context_processor
+def inject_active_page():
+    return {'active_page': request.endpoint}
 
 if __name__ == "__main__":
     app.run(debug=True)
