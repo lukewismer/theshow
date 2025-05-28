@@ -175,4 +175,36 @@ cython_debug/
 
 model/
 
-env/env/
+env/
+
+serviceAccountKey.json
+
+# macOS
+.DS_Store
+.Spotlight-V100
+.Trashes
+._*
+
+# Windows
+Thumbs.db
+desktop.ini
+
+.vscode/
+
+node_modules/
+
+.firebase/
+
+firebase-debug.log*
+
+# Generic log files
+*.log
+
+# NPM/Yarn error logs
+npm-debug.log*
+yarn-debug.log*
+*~
+*.swp
+
+# gcloud
+.gcloudignore

@@ -7,19 +7,14 @@ class PitcherGameLogs:
 
     def __init__(self):
         self.base_url = "https://statsapi.mlb.com/api/v1"
-        # 1) Pre-load event types once
         evts = requests.get(f"{self.base_url}/eventTypes").json()
         self.event_types = {e["code"]: e for e in evts}
-        # 2) Session for pooling
         self.sess = requests.Session()
-        # 3) PBP cache
         self._pbp_cache = {}
 
     def run(self, player_id, date, season):
-        # get 3wk, 1wk, season game lists
         g3, g1, gs = self.get_player_games(player_id, date, season)
 
-        # process in any order; each game is fetched only once
         s3 = self.process_games(player_id, g3)
         s1 = self.process_games(player_id, g1)
         ss = self.process_games(player_id, gs)
@@ -41,7 +36,6 @@ class PitcherGameLogs:
         return pd.DataFrame([row])
 
     def get_plays(self, game_id):
-        # fetch once per game, cache the allPlays list
         if game_id not in self._pbp_cache:
             resp = self.sess.get(
                 f"{self.base_url}/game/{game_id}/playByPlay"
@@ -52,7 +46,6 @@ class PitcherGameLogs:
     def process_games(self, player_id, game_ids):
         splits = {"ovr": [], "risp": []}
 
-        # pull every game's PBP in parallel, then accumulate
         with ThreadPoolExecutor(max_workers=8) as exe:
             futures = {exe.submit(self.get_plays, gid): gid for gid in game_ids}
             for fut in as_completed(futures):
@@ -74,7 +67,6 @@ class PitcherGameLogs:
             evt  = self.event_types.get(code, {})
             risp = (play["matchup"]["splits"]["menOnBase"] == "RISP")
 
-            # count outs as 1 per out recorded
             outs = 1 if pr.get("isOut") else 0
             cnt  = play["count"]
             balls, strikes = int(cnt["balls"]), int(cnt["strikes"])
@@ -83,7 +75,7 @@ class PitcherGameLogs:
                 "outs":       outs,
                 "hits":       int(evt.get("hit", False)),
                 "earnedRuns": pr.get("rbi", 0),
-                "runs":       0,  # you can compute this same way if needed
+                "runs":       0,
                 "homeRuns":   int(code == "home_run"),
                 "baseOnBalls":int(code in {"walk","intent_walk"}),
                 "strikeOuts": int(code in {"strikeout","strike_out"}),
@@ -173,7 +165,6 @@ class PitcherGameLogs:
         ).json()
 
         stats = res.get("stats", [])
-        # bullet‐proof: no stats returned
         if not stats or not stats[0].get("splits"):
             return [], [], []
 
