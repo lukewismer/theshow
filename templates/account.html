@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-page">
+  <h2>My Account</h2>
+  <div class="profile">
+    <img id="profile-pic" src="" alt="Profile Picture" class="profile-pic"/>
+    <p><strong>Username:</strong> <span id="username">—</span></p>
+    <p><strong>Email:</strong> <span id="email">—</span></p>
+    <p><strong>Rating:</strong> <span id="rating">—</span></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script type="module">
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+    const auth = getAuth();
+    const db   = getFirestore();
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        // not logged in → redirect to login
+        return window.location.href = "/login";
+      }
+
+      // Fill in email & photoURL
+      document.getElementById("email").textContent     = user.email;
+      if (user.photoURL) {
+        document.getElementById("profile-pic").src = user.photoURL;
+      }
+
+      // Load the Firestore 'users/{uid}' doc
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        document.getElementById("username").textContent = data.username;
+        document.getElementById("rating").textContent   = data.rating;
+      }
+    });
+  </script>
+{% endblock %}

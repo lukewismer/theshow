@@ -14,8 +14,8 @@ def strip_accents(s: str) -> str:
 def _lookup_player(row, season, base_url):
     search_name = row['search_name']
     print(search_name)
-    pos         = row.get('display_position', '')
-    num         = row.get('jersey_number')
+    pos = row.get('display_position', '')
+    num = row.get('jersey_number')
 
     session = requests.Session()
     resp = session.get(f"{base_url}/api/v1/people/search?names={search_name}")

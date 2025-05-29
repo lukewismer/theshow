@@ -47,6 +47,9 @@ def get_live_series(year, cache_dir='.'):
         df = pd.concat([existing, pd.DataFrame(new_cards)], ignore_index=True)
 
         df = df.drop_duplicates(subset=['uuid', 'year'], keep='first')
+        for idx, row in df.iterrows():
+            if row.get('name') == 'Shohei Ohtani':
+                df.at[idx, 'display_position'] = 'DH'
 
         drop_cols = [
             "type", "img", "sc_baked_img", "short_description", "series",
