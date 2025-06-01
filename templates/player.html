@@ -1,0 +1,935 @@
+{% extends "base.html" %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/player.module.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="player-page-container">
+  <!-- Player Header Section -->
+  <section class="player-header">
+    <div class="player-card">
+      <img src="{{ player.baked_img }}" alt="{{ player.name }}" class="player-image">
+    </div>
+    
+    <div class="player-basic-info">
+      <div class="player-name-row">
+        <h1 class="player-name">{{ player.name }}</h1>
+        <div class="player-meta">
+          <span class="player-team">{{ player.team_short_name }}</span>
+          <span class="player-position">{{ player.display_position }}</span>
+          <span class="player-age">Age: {{ player.age }}</span>
+        </div>
+      </div>
+      
+      <div class="player-stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Overall</span>
+          <span class="stat-value">{{ player.ovr }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Change In Overall</span>
+          <span class="stat-value {% if player.delta_rank_pred >= 0 %}positive{% else %}negative{% endif %}">
+            {% if player.delta_rank_pred >= 0 %}+{% endif %}{{ player.delta_rank_pred }}
+          </span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Confidence</span>
+          <span class="stat-value">{{ player.confidence_percentage|round(1) }}%</span>
+        </div>
+        <!-- New Profit % Card -->
+        <div class="stat-card">
+          <span class="stat-label">Profit %</span>
+          <span class="stat-value {% if player.predicted_profit_pct >= 0 %}positive{% else %}negative{% endif %}">
+            {% if player.predicted_profit_pct >= 0 %}+{% endif %}{{ player.predicted_profit_pct|round(1) }}%
+          </span>
+        </div>
+      </div>
+      
+      <div class="player-details-row">
+        <div class="detail-item">
+          <span class="detail-label">Bat Hand</span>
+          <span class="detail-value">{{ player.bat_hand }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Throw Hand</span>
+          <span class="detail-value">{{ player.throw_hand }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Height</span>
+          <span class="detail-value">{{ player.height }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Weight</span>
+          <span class="detail-value">{{ player.weight }}</span>
+        </div>
+      </div>
+      
+      <!-- Dynamic Description -->
+      <div class="player-description">
+        <p>
+          Our model predicts a <strong>{{ player.confidence_percentage|round(1) }}%</strong> chance that 
+          <strong>{{ player.name }}</strong> upgrades (<strong>
+          {% if player.delta_rank_pred >= 0 %}+{% endif %}{{ player.delta_rank_pred }}</strong>) 
+          to <strong>{{ player.predicted_rank }}</strong> overall. 
+          {% if player.market_price %}
+            Buying {{ player.name }} at a current price of <strong>{{ player.market_price }}</strong> 
+            you can expect a profit of <strong class="{% if player.predicted_profit >= 0 %}positive{% else %}negative{% endif %}">
+            {{ player.predicted_profit|round }}</strong> (<strong class="{% if player.predicted_profit_pct >= 0 %}positive{% else %}negative{% endif %}">
+            {% if player.predicted_profit_pct >= 0 %}+{% endif %}{{ player.predicted_profit_pct|round(1) }}%</strong>). 
+          {% endif %}
+          However, the low case scenario is an upgrade (<strong>{% if player.delta_rank_low >= 0 %}+{% endif %}{{ player.delta_rank_low }}</strong>) 
+          to <strong>{{ player.predicted_rank_low }}</strong> which would give you a profit of 
+          <strong class="{% if player.predicted_profit_low >= 0 %}positive{% else %}negative{% endif %}">
+          {{ player.predicted_profit_low|round }}</strong> (<strong class="{% if player.predicted_profit_pct_low >= 0 %}positive{% else %}negative{% endif %}">
+          {% if player.predicted_profit_pct_low >= 0 %}+{% endif %}{{ player.predicted_profit_pct_low|round(1) }}%</strong>).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Attributes Section -->
+  <section class="player-section">
+    <h2 class="section-title">Attributes</h2>
+    <div class="attributes-container">
+      {% if player.is_hitter %}
+        <!-- Hitter Attributes -->
+        <div class="attributes-group">
+          <h3 class="group-title">Hitting</h3>
+          <div class="attribute-row">
+            <span class="attribute-label">Contact vs L</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.contact_left / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.contact_left }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Contact vs R</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.contact_right / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.contact_right }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Power vs L</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.power_left / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.power_left }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Power vs R</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.power_right / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.power_right }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Plate Vision</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.plate_vision / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.plate_vision }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="attributes-group">
+          <h3 class="group-title">Fielding</h3>
+          <div class="attribute-row">
+            <span class="attribute-label">Fielding Ability</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.fielding_ability / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.fielding_ability }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Arm Strength</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.arm_strength / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.arm_strength }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Arm Accuracy</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.arm_accuracy / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.arm_accuracy }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Reaction Time</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.reaction_time / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.reaction_time }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Blocking</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.blocking / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.blocking }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="attributes-group">
+          <h3 class="group-title">Running</h3>
+          <div class="attribute-row">
+            <span class="attribute-label">Speed</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.speed / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.speed }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Stealing</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.baserunning_ability / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.baserunning_ability }}</span>
+            </div>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-label">Aggression</span>
+            <div class="attribute-bar">
+              <div class="bar-fill" style="width: {{ (player.baserunning_aggression / 125 * 100)|round(1) }}%"></div>
+              <span class="attribute-value">{{ player.baserunning_aggression }}</span>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <!-- Pitcher Attributes -->
+        <div class="attributes-group">
+            <h3 class="group-title">Pitching</h3>
+            {% for attr in ['stamina', 'pitching_clutch', 'hits_per_bf', 'k_per_bf', 'bb_per_bf', 'hr_per_bf'] %}
+              {% set value = player.get(attr, 0) %}
+              <div class="attribute-row">
+                <span class="attribute-label">{{ attr.replace('_', ' ').title() }}</span>
+                <div class="attribute-bar">
+                  <div class="bar-fill" style="width: {{ (value / 125 * 100)|round(1) }}%"></div>
+                  <span class="attribute-value">{{ value }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <div class="attributes-group">
+            <h3 class="group-title">Pitch Attributes</h3>
+            {% for attr in ['pitch_velocity', 'pitch_control', 'pitch_movement'] %}
+              {% set value = player.get(attr, 0) %}
+              <div class="attribute-row">
+                <span class="attribute-label">{{ attr.replace('_', ' ').title() }}</span>
+                <div class="attribute-bar">
+                  <div class="bar-fill" style="width: {{ (value / 125 * 100)|round(1) }}%"></div>
+                  <span class="attribute-value">{{ value }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+  <!-- Predictions Section -->
+  <section class="player-section">
+    <h2 class="section-title">Predictions</h2>
+    <div class="predictions-grid">
+      <div class="prediction-card">
+        <h3 class="prediction-title">Current Overall</h3>
+        <div class="prediction-value">{{ player.ovr }}</div>
+      </div>
+      <div class="prediction-card">
+        <h3 class="prediction-title">Predicted Overall</h3>
+        <div class="prediction-value">{{ player.predicted_rank }}</div>
+      </div>
+      <div class="prediction-card">
+        <h3 class="prediction-title">Change in Overall</h3>
+        <div class="prediction-value {% if player.delta_rank_pred >= 0 %}positive{% else %}negative{% endif %}">
+          {% if player.delta_rank_pred >= 0 %}+{% endif %}{{ player.delta_rank_pred }}
+        </div>
+      </div>
+      <div class="prediction-card">
+        <h3 class="prediction-title">Confidence</h3>
+        <div class="prediction-value">{{ player.confidence_percentage|round(1) }}%</div>
+      </div>
+    </div>
+    
+    <h3 class="sub-section-title">Attribute Predictions</h3>
+  <div class="prediction-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Attribute</th>
+          <th>Current</th>
+          <th>Predicted</th>
+          <th>Δ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if player.is_hitter %}
+          {% for attr in ['contact_left', 'contact_right', 'power_left', 'power_right', 'plate_vision', 'plate_discipline'] %}
+            {% set current = player.get(attr, 0) %}
+            {% set predicted = player.get(attr + '_new', current) %}
+            {% set delta = predicted - current %}
+            <tr>
+              <td>{{ attr.replace('_', ' ').title() }}</td>
+              <td>{{ current }}</td>
+              <td>{{ predicted|round(1) }}</td>
+              <td class="{% if delta >= 0 %}positive{% else %}negative{% endif %}">
+                {% if delta >= 0 %}+{% endif %}{{ delta|round(1) }}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          {% for attr in ['stamina', 'pitching_clutch', 'hits_per_bf', 'k_per_bf', 'bb_per_bf', 'hr_per_bf'] %}
+            {% set current = player.get(attr, 0) %}
+            {% set predicted = player.get(attr + '_new', current) %}
+            {% set delta = predicted - current %}
+            <tr>
+              <td>{{ attr.replace('_', ' ').title() }}</td>
+              <td>{{ current }}</td>
+              <td>{{ predicted|round(1) }}</td>
+              <td class="{% if delta >= 0 %}positive{% else %}negative{% endif %}">
+                {% if delta >= 0 %}+{% endif %}{{ delta|round(1) }}
+              </td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+  <!-- Market Section -->
+  <section class="player-section">
+    <h2 class="section-title">Market Data</h2>
+    <div class="market-grid">
+      <div class="market-card">
+        <h3 class="market-title">Quick Sell Actual</h3>
+        <div class="market-value">{{ player.qs_actual if player.qs_actual else '–' }}</div>
+      </div>
+      <div class="market-card">
+        <h3 class="market-title">Quick Sell Predicted</h3>
+        <div class="market-value">{{ player.qs_pred|round if player.qs_pred else '–' }}</div>
+      </div>
+      <div class="market-card">
+        <h3 class="market-title">Market Price</h3>
+        <div class="market-value">{{ player.market_price if player.market_price else '–' }}</div>
+      </div>
+      <div class="market-card">
+        <h3 class="market-title">Predicted Profit</h3>
+        <div class="market-value {% if player.predicted_profit >= 0 %}positive{% else %}negative{% endif %}">
+          {{ player.predicted_profit|round if player.predicted_profit else '–' }}
+        </div>
+      </div>
+      <div class="market-card">
+        <h3 class="market-title">Predicted Profit %</h3>
+        <div class="market-value {% if player.predicted_profit_pct >= 0 %}positive{% else %}negative{% endif %}">
+          {% if player.predicted_profit_pct %}{% if player.predicted_profit_pct >= 0 %}+{% endif %}{{ player.predicted_profit_pct|round(1) }}%{% else %}–{% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="player-section">
+    <h2 class="section-title">Player Stats</h2>
+    
+    <div class="time-period-tabs">
+      <button class="period-tab active" data-period="season">Season</button>
+      <button class="period-tab" data-period="3wk">3-Week</button>
+      <button class="period-tab" data-period="1wk">1-Week</button>
+    </div>
+    
+    <div class="stats-container">
+      <!-- Season Stats -->
+      <div class="stats-table-container active" id="season-stats">
+        <h3 class="stats-title">Season Stats</h3>
+        {% if player.is_hitter %}
+          <!-- Hitter Stats -->
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Stat</th>
+                <th>vs LHP</th>
+                <th>vs RHP</th>
+                <th>RISP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PA</td>
+                <td>{{ player.season_vl_pa|round(3) }}</td>
+                <td>{{ player.season_vr_pa|round(3) }}</td>
+                <td>{{ player.season_risp_pa|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>AVG</td>
+                <td>{{ player.season_vl_avg|round(3) }}</td>
+                <td>{{ player.season_vr_avg|round(3) }}</td>
+                <td>{{ player.season_risp_avg|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>OBP</td>
+                <td>{{ player.season_vl_obp|round(3) }}</td>
+                <td>{{ player.season_vr_obp|round(3) }}</td>
+                <td>{{ player.season_risp_obp|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>SLG</td>
+                <td>{{ player.season_vl_slug|round(3) }}</td>
+                <td>{{ player.season_vr_slug|round(3) }}</td>
+                <td>{{ player.season_risp_slug|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>OPS</td>
+                <td>{{ player.season_vl_ops|round(3) }}</td>
+                <td>{{ player.season_vr_ops|round(3) }}</td>
+                <td>{{ player.season_risp_ops|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>HR</td>
+                <td>{{ player.season_vl_hr }}</td>
+                <td>{{ player.season_vr_hr }}</td>
+                <td>{{ player.season_risp_hr }}</td>
+              </tr>
+              <tr>
+                <td>H</td>
+                <td>{{ player.season_vl_h }}</td>
+                <td>{{ player.season_vr_h }}</td>
+                <td>{{ player.season_risp_h }}</td>
+              </tr>
+              <tr>
+                <td>SO</td>
+                <td>{{ player.season_vl_so }}</td>
+                <td>{{ player.season_vr_so }}</td>
+                <td>{{ player.season_risp_so }}</td>
+              </tr>
+              <tr>
+                <td>BB</td>
+                <td>{{ player.season_vl_bb }}</td>
+                <td>{{ player.season_vr_bb }}</td>
+                <td>{{ player.season_risp_bb }}</td>
+              </tr>
+              <tr>
+                <td>RBI</td>
+                <td>{{ player.season_vl_rbi }}</td>
+                <td>{{ player.season_vr_rbi }}</td>
+                <td>{{ player.season_risp_rbi }}</td>
+              </tr>
+            </tbody>
+          </table>
+        {% else %}
+          <!-- Pitcher Stats -->
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Stat</th>
+                <th>Overall</th>
+                <th>RISP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>IP</td>
+                <td>{{ player.season_ovr_IP|round(1) }}</td>
+                <td>{{ player.season_risp_IP|round(1) }}</td>
+              </tr>
+              <tr>
+                <td>ERA</td>
+                <td>
+                  {% if player.season_ovr_IP > 0 %}
+                    {{ (player.season_ovr_ER * 9 / player.season_ovr_IP)|round(2) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player.season_risp_IP > 0 %}
+                    {{ (player.season_risp_ER * 9 / player.season_risp_IP)|round(2) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>WHIP</td>
+                <td>{{ player.season_ovr_WHIP|round(3) }}</td>
+                <td>{{ player.season_risp_WHIP|round(3) }}</td>
+              </tr>
+              <!-- Fixed K/9 with proper calculation -->
+              <tr>
+                <td>K/9</td>
+                <td>
+                  {% if player.season_ovr_IP > 0 %}
+                    {{ (player.season_ovr_K * 9 / player.season_ovr_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player.season_risp_IP > 0 %}
+                    {{ (player.season_risp_K * 9 / player.season_risp_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <!-- Fixed BB/9 with proper calculation -->
+              <tr>
+                <td>BB/9</td>
+                <td>
+                  {% if player.season_ovr_IP > 0 %}
+                    {{ (player.season_ovr_BB * 9 / player.season_ovr_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player.season_risp_IP > 0 %}
+                    {{ (player.season_risp_BB * 9 / player.season_risp_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <!-- Added H/9 -->
+              <tr>
+                <td>H/9</td>
+                <td>
+                  {% if player.season_ovr_IP > 0 %}
+                    {{ (player.season_ovr_H * 9 / player.season_ovr_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player.season_risp_IP > 0 %}
+                    {{ (player.season_risp_H * 9 / player.season_risp_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <!-- Added HR/9 -->
+              <tr>
+                <td>HR/9</td>
+                <td>
+                  {% if player.season_ovr_IP > 0 %}
+                    {{ (player.season_ovr_HR * 9 / player.season_ovr_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player.season_risp_IP > 0 %}
+                    {{ (player.season_risp_HR * 9 / player.season_risp_IP)|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+      
+      <!-- 3-Week Stats -->
+      <div class="stats-table-container" id="3wk-stats">
+        <h3 class="stats-title">3-Week Stats</h3>
+        {% if player.is_hitter %}
+          <!-- Hitter Stats -->
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Stat</th>
+                <th>vs LHP</th>
+                <th>vs RHP</th>
+                <th>RISP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PA</td>
+                <td>{{ player['3wk_vl_pa']|round(3) }}</td>
+                <td>{{ player['3wk_vr_pa']|round(3) }}</td>
+                <td>{{ player['3wk_risp_pa']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>AVG</td>
+                <td>{{ player['3wk_vl_avg']|round(3) }}</td>
+                <td>{{ player['3wk_vr_avg']|round(3) }}</td>
+                <td>{{ player['3wk_risp_avg']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>OBP</td>
+                <td>{{ player['3wk_vl_obp']|round(3) }}</td>
+                <td>{{ player['3wk_vr_obp']|round(3) }}</td>
+                <td>{{ player['3wk_risp_obp']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>SLG</td>
+                <td>{{ player['3wk_vl_slug']|round(3) }}</td>
+                <td>{{ player['3wk_vr_slug']|round(3) }}</td>
+                <td>{{ player['3wk_risp_slug']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>OPS</td>
+                <td>{{ player['3wk_vl_ops']|round(3) }}</td>
+                <td>{{ player['3wk_vr_ops']|round(3) }}</td>
+                <td>{{ player['3wk_risp_ops']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>HR</td>
+                <td>{{ player['3wk_vl_hr'] }}</td>
+                <td>{{ player['3wk_vr_hr'] }}</td>
+                <td>{{ player['3wk_risp_hr'] }}</td>
+              </tr>
+              <tr>
+                <td>H</td>
+                <td>{{ player['3wk_vl_h'] }}</td>
+                <td>{{ player['3wk_vr_h'] }}</td>
+                <td>{{ player['3wk_risp_h'] }}</td>
+              </tr>
+              <tr>
+                <td>SO</td>
+                <td>{{ player['3wk_vl_so'] }}</td>
+                <td>{{ player['3wk_vr_so'] }}</td>
+                <td>{{ player['3wk_risp_so'] }}</td>
+              </tr>
+              <tr>
+                <td>BB</td>
+                <td>{{ player['3wk_vl_bb'] }}</td>
+                <td>{{ player['3wk_vr_bb'] }}</td>
+                <td>{{ player['3wk_risp_bb'] }}</td>
+              </tr>
+              <tr>
+                <td>RBI</td>
+                <td>{{ player['3wk_vl_rbi'] }}</td>
+                <td>{{ player['3wk_vr_rbi'] }}</td>
+                <td>{{ player['3wk_risp_rbi'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        {% else %}
+          <!-- Pitcher Stats -->
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Stat</th>
+                <th>Overall</th>
+                <th>RISP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>IP</td>
+                <td>{{ player['3wk_ovr_IP']|round(1) }}</td>
+                <td>{{ player['3wk_risp_IP']|round(1) }}</td>
+              </tr>
+              <tr>
+                <td>ERA</td>
+                <td>
+                  {% if player['3wk_ovr_IP'] > 0 %}
+                    {{ (player['3wk_ovr_ER'] * 9 / player['3wk_ovr_IP'])|round(2) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['3wk_risp_IP'] > 0 %}
+                    {{ (player['3wk_risp_ER'] * 9 / player['3wk_risp_IP'])|round(2) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>WHIP</td>
+                <td>{{ player['3wk_ovr_WHIP']|round(3) }}</td>
+                <td>{{ player['3wk_risp_WHIP']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>K/9</td>
+                <td>
+                  {% if player['3wk_ovr_IP'] > 0 %}
+                    {{ (player['3wk_ovr_K'] * 9 / player['3wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['3wk_risp_IP'] > 0 %}
+                    {{ (player['3wk_risp_K'] * 9 / player['3wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>BB/9</td>
+                <td>
+                  {% if player['3wk_ovr_IP'] > 0 %}
+                    {{ (player['3wk_ovr_BB'] * 9 / player['3wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['3wk_risp_IP'] > 0 %}
+                    {{ (player['3wk_risp_BB'] * 9 / player['3wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>H/9</td>
+                <td>
+                  {% if player['3wk_ovr_IP'] > 0 %}
+                    {{ (player['3wk_ovr_H'] * 9 / player['3wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['3wk_risp_IP'] > 0 %}
+                    {{ (player['3wk_risp_H'] * 9 / player['3wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>HR/9</td>
+                <td>
+                  {% if player['3wk_ovr_IP'] > 0 %}
+                    {{ (player['3wk_ovr_HR'] * 9 / player['3wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['3wk_risp_IP'] > 0 %}
+                    {{ (player['3wk_risp_HR'] * 9 / player['3wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+      
+      <!-- 1-Week Stats -->
+      <div class="stats-table-container" id="1wk-stats">
+        <h3 class="stats-title">1-Week Stats</h3>
+        {% if player.is_hitter %}
+          <!-- Hitter Stats -->
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Stat</th>
+                <th>vs LHP</th>
+                <th>vs RHP</th>
+                <th>RISP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PA</td>
+                <td>{{ player['1wk_vl_pa']|round(3) }}</td>
+                <td>{{ player['1wk_vr_pa']|round(3) }}</td>
+                <td>{{ player['1wk_risp_pa']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>AVG</td>
+                <td>{{ player['1wk_vl_avg']|round(3) }}</td>
+                <td>{{ player['1wk_vr_avg']|round(3) }}</td>
+                <td>{{ player['1wk_risp_avg']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>OBP</td>
+                <td>{{ player['1wk_vl_obp']|round(3) }}</td>
+                <td>{{ player['1wk_vr_obp']|round(3) }}</td>
+                <td>{{ player['1wk_risp_obp']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>SLG</td>
+                <td>{{ player['1wk_vl_slug']|round(3) }}</td>
+                <td>{{ player['1wk_vr_slug']|round(3) }}</td>
+                <td>{{ player['1wk_risp_slug']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>OPS</td>
+                <td>{{ player['1wk_vl_ops']|round(3) }}</td>
+                <td>{{ player['1wk_vr_ops']|round(3) }}</td>
+                <td>{{ player['1wk_risp_ops']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>HR</td>
+                <td>{{ player['1wk_vl_hr'] }}</td>
+                <td>{{ player['1wk_vr_hr'] }}</td>
+                <td>{{ player['1wk_risp_hr'] }}</td>
+              </tr>
+              <tr>
+                <td>H</td>
+                <td>{{ player['1wk_vl_h'] }}</td>
+                <td>{{ player['1wk_vr_h'] }}</td>
+                <td>{{ player['1wk_risp_h'] }}</td>
+              </tr>
+              <tr>
+                <td>SO</td>
+                <td>{{ player['1wk_vl_so'] }}</td>
+                <td>{{ player['1wk_vr_so'] }}</td>
+                <td>{{ player['1wk_risp_so'] }}</td>
+              </tr>
+              <tr>
+                <td>BB</td>
+                <td>{{ player['1wk_vl_bb'] }}</td>
+                <td>{{ player['1wk_vr_bb'] }}</td>
+                <td>{{ player['1wk_risp_bb'] }}</td>
+              </tr>
+              <tr>
+                <td>RBI</td>
+                <td>{{ player['1wk_vl_rbi'] }}</td>
+                <td>{{ player['1wk_vr_rbi'] }}</td>
+                <td>{{ player['1wk_risp_rbi'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        {% else %}
+          <!-- Pitcher Stats -->
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Stat</th>
+                <th>Overall</th>
+                <th>RISP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>IP</td>
+                <td>{{ player['1wk_ovr_IP']|round(1) }}</td>
+                <td>{{ player['1wk_risp_IP']|round(1) }}</td>
+              </tr>
+              <tr>
+                <td>ERA</td>
+                <td>
+                  {% if player['1wk_ovr_IP'] > 0 %}
+                    {{ (player['1wk_ovr_ER'] * 9 / player['1wk_ovr_IP'])|round(2) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['1wk_risp_IP'] > 0 %}
+                    {{ (player['1wk_risp_ER'] * 9 / player['1wk_risp_IP'])|round(2) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>WHIP</td>
+                <td>{{ player['1wk_ovr_WHIP']|round(3) }}</td>
+                <td>{{ player['1wk_risp_WHIP']|round(3) }}</td>
+              </tr>
+              <tr>
+                <td>K/9</td>
+                <td>
+                  {% if player['1wk_ovr_IP'] > 0 %}
+                    {{ (player['1wk_ovr_K'] * 9 / player['1wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['1wk_risp_IP'] > 0 %}
+                    {{ (player['1wk_risp_K'] * 9 / player['1wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>BB/9</td>
+                <td>
+                  {% if player['1wk_ovr_IP'] > 0 %}
+                    {{ (player['1wk_ovr_BB'] * 9 / player['1wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['1wk_risp_IP'] > 0 %}
+                    {{ (player['1wk_risp_BB'] * 9 / player['1wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>H/9</td>
+                <td>
+                  {% if player['1wk_ovr_IP'] > 0 %}
+                    {{ (player['1wk_ovr_H'] * 9 / player['1wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['1wk_risp_IP'] > 0 %}
+                    {{ (player['1wk_risp_H'] * 9 / player['1wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td>HR/9</td>
+                <td>
+                  {% if player['1wk_ovr_IP'] > 0 %}
+                    {{ (player['1wk_ovr_HR'] * 9 / player['1wk_ovr_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if player['1wk_risp_IP'] > 0 %}
+                    {{ (player['1wk_risp_HR'] * 9 / player['1wk_risp_IP'])|round(1) }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Tab functionality for stats period
+  document.querySelectorAll('.period-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      // Remove active class from all tabs
+      document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+      // Add active class to clicked tab
+      this.classList.add('active');
+      
+      // Hide all stats containers
+      document.querySelectorAll('.stats-table-container').forEach(container => {
+        container.classList.remove('active');
+      });
+      
+      // Show selected stats container
+      const period = this.dataset.period;
+      document.getElementById(`${period}-stats`).classList.add('active');
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/predictions.module.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="predictions-container">
+  <section class="predictions-hero">
+    <h1 class="hero-title">Player Predictions</h1>
+  </section>
+
+  <section class="predictions-table">
+    <div class="table-header">
+      <div class="controls">
+        <div class="filter-group">
+          <label for="rarityFilter">Rarity:</label>
+          <select id="rarityFilter">
+            <option value="all">All</option>
+            <option value="common">Common</option>
+            <option value="bronze">Bronze</option>
+            <option value="silver">Silver</option>
+            <option value="gold">Gold</option>
+            <option value="diamond">Diamond</option>
+          </select>
+
+          <label for="searchInput">Search:</label>
+          <input type="text" id="searchInput" placeholder="Player name…">
+        </div>
+
+        {# ========== Column‐toggle dropdowns ========== #}
+        {# These dropdowns remain the same; each <input> has data-key="..." and is checked only if part of default_keys #}
+        {% set default_keys = [
+            'card','name','ovr','delta_rank_pred','confidence_percentage',
+            'market_price','qs_pred','predicted_profit', 'predicted_profit_pct'
+        ] %}
+
+        <div class="column-dropdowns">
+          <!-- Details Dropdown -->
+          <details class="column-dropdown">
+            <summary>Details</summary>
+            <div class="dropdown-content">
+              <input type="text" class="column-search" placeholder="Search Details..." data-group="details">
+              <div class="column-group" data-group="details">
+                {% for key,label in [
+                  ("card","Card"),("name","Name"),("team","Team"),
+                  ("team_short_name","Team (abbr)"),("display_position","Pos"),
+                  ("age","Age"),("bat_hand","Bat Hand"),("throw_hand","Throw Hand"),
+                  ("weight","Weight"),("height","Height"),("is_hitter","Is Hitter")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+
+          <!-- Attributes Dropdown -->
+          <details class="column-dropdown">
+            <summary>Attributes</summary>
+            <div class="dropdown-content">
+              <input type="text" class="column-search" placeholder="Search Attributes..." data-group="attributes">
+              <div class="column-group" data-group="attributes">
+                {% for key,label in [
+                  ("stamina","Stamina"),("pitching_clutch","Pitching Clutch"),("hits_per_bf","Hits/BF"),
+                  ("k_per_bf","K/BF"),("bb_per_bf","BB/BF"),("hr_per_bf","HR/BF"),
+                  ("pitch_velocity","Velocity"),("pitch_control","Pitch Control"),("pitch_movement","Pitch Movement"),
+                  ("contact_left","Contact Left"),("contact_right","Contact Right"),("power_left","Power Left"),
+                  ("power_right","Power Right"),("plate_vision","Plate Vision"),("plate_discipline","Plate Discipline"),
+                  ("batting_clutch","Batting Clutch"),("bunting_ability","Bunting Ability"),
+                  ("drag_bunting_ability","Drag Bunting"),("hitting_durability","Hitting Durability"),
+                  ("fielding_durability","Fielding Durability"),("fielding_ability","Fielding Ability"),
+                  ("arm_strength","Arm Strength"),("arm_accuracy","Arm Accuracy"),("reaction_time","Reaction Time"),
+                  ("blocking","Blocking"),("speed","Speed"),("baserunning_ability","Baserunning Ability"),
+                  ("baserunning_aggression","Baserunning Aggression")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+
+          <!-- Predictions Dropdown -->
+          <details class="column-dropdown">
+            <summary>Predictions</summary>
+            <div class="dropdown-content">
+              <input type="text" class="column-search" placeholder="Search Predictions..." data-group="predictions">
+              <div class="column-group" data-group="predictions">
+                <strong>Overall Rank</strong>
+                {% for key,label in [
+                  ("delta_rank_low","Change In Rank Low"),("delta_rank_pred","Change in Rank Predicted"),("delta_rank_high","Change in Rank High"),
+                  ("predicted_rank_low","Predicted Rank Low"),("predicted_rank","Predicted Rank"),("predicted_rank_high","Predicted Rank High")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+
+                <strong>Attribute Level</strong>
+                {% for attr in ["contact_right","contact_left","power_right","power_left","plate_vision","plate_discipline","batting_clutch","pitching_clutch","k_per_bf","bb_per_bf","hr_per_bf","stamina"] %}
+                  {% for suffix,label in [("_new","Pred"),("_new_low","Low"),("_new_high","High")] %}
+                    <label>
+                      <input type="checkbox"
+                             data-key="{{ attr }}{{ suffix }}"
+                             {% if (attr ~ suffix) in default_keys %}checked{% endif %}>
+                      {{ attr.replace('_',' ').title() }} {{ label }}
+                    </label>
+                  {% endfor %}
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+
+          <!-- Market Dropdown -->
+          <details class="column-dropdown">
+            <summary>Market</summary>
+            <div class="dropdown-content">
+              <input type="text" class="column-search" placeholder="Search Market..." data-group="market">
+              <div class="column-group" data-group="market">
+                {% for key,label in [
+                  ("qs_actual","Current QS"),("qs_pred_low","QS Predicted Low"),("qs_pred","QS Predicted"),("qs_pred_high","QS Predicted High"),
+                  ("market_price","Current Price"),("predicted_profit","Predicted Profit"),("predicted_profit_low","Predicted Profit Low"),
+                  ("predicted_profit_high","Predicted Profit High"),("predicted_ev_profit","Expected Profit"), ("predicted_profit_pct", "Profit %")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+
+          <!-- Hitter Stats Dropdown -->
+          <details class="column-dropdown">
+            <summary>Hitter Stats</summary>
+            <div class="dropdown-content">
+              <input type="text" class="column-search" placeholder="Search Hitter Stats..." data-group="hitter_stats">
+              <div class="column-group" data-group="hitter_stats">
+                <strong>Season</strong>
+                {% for key,label in [
+                  ("season_gp","GP"),("season_vl_gp","Vs LHP GP"),("season_vl_h","Vs LHP H"),("season_vl_2b","Vs LHP 2B"),("season_vl_3b","Vs LHP 3B"),
+                  ("season_vl_hr","Vs LHP HR"),("season_vl_tb","Vs LHP TB"),("season_vl_so","Vs LHP SO"),("season_vl_pa","Vs LHP PA"),("season_vl_bb","Vs LHP BB"),
+                  ("season_vl_hbp","Vs LHP HBP"),("season_vl_ab","Vs LHP AB"),("season_vl_rbi","Vs LHP RBI"),("season_vl_pitches_per_pa","Vs LHP P/PA"),("season_vl_avg","Vs LHP AVG"),
+                  ("season_vl_obp","Vs LHP OBP"),("season_vl_slug","Vs LHP SLG"),("season_vl_ops","Vs LHP OPS"),("season_vl_babip","Vs LHP BABIP"),("season_vr_gp","Vs RHP GP"),
+                  ("season_vr_h","Vs RHP H"),("season_vr_2b","Vs RHP 2B"),("season_vr_3b","Vs RHP 3B"),("season_vr_hr","Vs RHP HR"),("season_vr_tb","Vs RHP TB"),
+                  ("season_vr_so","Vs RHP SO"),("season_vr_pa","Vs RHP PA"),("season_vr_bb","Vs RHP BB"),("season_vr_hbp","Vs RHP HBP"),("season_vr_ab","Vs RHP AB"),
+                  ("season_vr_rbi","Vs RHP RBI"),("season_vr_pitches_per_pa","Vs RHP P/PA"),("season_vr_avg","Vs RHP AVG"),("season_vr_obp","Vs RHP OBP"),("season_vr_slug","Vs RHP SLG"),
+                  ("season_vr_ops","Vs RHP OPS"),("season_vr_babip","Vs RHP BABIP"),("season_risp_gp","RISP GP"),("season_risp_h","RISP H"),("season_risp_2b","RISP 2B"),
+                  ("season_risp_3b","RISP 3B"),("season_risp_hr","RISP HR"),("season_risp_tb","RISP TB"),("season_risp_so","RISP SO"),("season_risp_pa","RISP PA"),
+                  ("season_risp_bb","RISP BB"),("season_risp_hbp","RISP HBP"),("season_risp_ab","RISP AB"),("season_risp_rbi","RISP RBI"),("season_risp_pitches_per_pa","RISP P/PA"),
+                  ("season_risp_avg","RISP AVG"),("season_risp_obp","RISP OBP"),("season_risp_slug","RISP SLG"),("season_risp_ops","RISP OPS"),("season_risp_babip","RISP BABIP")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+
+                <strong>3-Week</strong>
+                {% for key,label in [
+                  ("3wk_gp","GP"),("3wk_vl_gp","Vs LHP GP"),("3wk_vl_h","Vs LHP H"),("3wk_vl_2b","Vs LHP 2B"),("3wk_vl_3b","Vs LHP 3B"),
+                  ("3wk_vl_hr","Vs LHP HR"),("3wk_vl_tb","Vs LHP TB"),("3wk_vl_so","Vs LHP SO"),("3wk_vl_pa","Vs LHP PA"),("3wk_vl_bb","Vs LHP BB"),
+                  ("3wk_vl_hbp","Vs LHP HBP"),("3wk_vl_ab","Vs LHP AB"),("3wk_vl_rbi","Vs LHP RBI"),("3wk_vl_pitches_per_pa","Vs LHP P/PA"),("3wk_vl_avg","Vs LHP AVG"),
+                  ("3wk_vl_obp","Vs LHP OBP"),("3wk_vl_slug","Vs LHP SLG"),("3wk_vl_ops","Vs LHP OPS"),("3wk_vl_babip","Vs LHP BABIP"),("3wk_vr_gp","Vs RHP GP"),
+                  ("3wk_vr_h","Vs RHP H"),("3wk_vr_2b","Vs RHP 2B"),("3wk_vr_3b","Vs RHP 3B"),("3wk_vr_hr","Vs RHP HR"),("3wk_vr_tb","Vs RHP TB"),
+                  ("3wk_vr_so","Vs RHP SO"),("3wk_vr_pa","Vs RHP PA"),("3wk_vr_bb","Vs RHP BB"),("3wk_vr_hbp","Vs RHP HBP"),("3wk_vr_ab","Vs RHP AB"),
+                  ("3wk_vr_rbi","Vs RHP RBI"),("3wk_vr_pitches_per_pa","Vs RHP P/PA"),("3wk_vr_avg","Vs RHP AVG"),("3wk_vr_obp","Vs RHP OBP"),("3wk_vr_slug","Vs RHP SLG"),
+                  ("3wk_vr_ops","Vs RHP OPS"),("3wk_vr_babip","Vs RHP BABIP"),("3wk_risp_gp","RISP GP"),("3wk_risp_h","RISP H"),("3wk_risp_2b","RISP 2B"),
+                  ("3wk_risp_3b","RISP 3B"),("3wk_risp_hr","RISP HR"),("3wk_risp_tb","RISP TB"),("3wk_risp_so","RISP SO"),("3wk_risp_pa","RISP PA"),
+                  ("3wk_risp_bb","RISP BB"),("3wk_risp_hbp","RISP HBP"),("3wk_risp_ab","RISP AB"),("3wk_risp_rbi","RISP RBI"),("3wk_risp_pitches_per_pa","RISP P/PA"),
+                  ("3wk_risp_avg","RISP AVG"),("3wk_risp_obp","RISP OBP"),("3wk_risp_slug","RISP SLG"),("3wk_risp_ops","RISP OPS"),("3wk_risp_babip","RISP BABIP")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+
+                <strong>1-Week</strong>
+                {% for key,label in [
+                  ("1wk_gp","GP"),("1wk_vl_gp","Vs LHP GP"),("1wk_vl_h","Vs LHP H"),("1wk_vl_2b","Vs LHP 2B"),
+                  ("1wk_vl_3b","Vs LHP 3B"),("1wk_vl_hr","Vs LHP HR"),("1wk_vl_tb","Vs LHP TB"),("1wk_vl_so","Vs LHP SO"),
+                  ("1wk_vl_pa","Vs LHP PA"),("1wk_vl_bb","Vs LHP BB"),("1wk_vl_hbp","Vs LHP HBP"),("1wk_vl_ab","Vs LHP AB"),
+                  ("1wk_vl_rbi","Vs LHP RBI"),("1wk_vl_pitches_per_pa","Vs LHP P/PA"),("1wk_vl_avg","Vs LHP AVG"),("1wk_vl_obp","Vs LHP OBP"),
+                  ("1wk_vl_slug","Vs LHP SLG"),("1wk_vl_ops","Vs LHP OPS"),("1wk_vl_babip","Vs LHP BABIP"),("1wk_vr_gp","Vs RHP GP"),
+                  ("1wk_vr_h","Vs RHP H"),("1wk_vr_2b","Vs RHP 2B"),("1wk_vr_3b","Vs RHP 3B"),("1wk_vr_hr","Vs RHP HR"),("1wk_vr_tb","Vs RHP TB"),
+                  ("1wk_vr_so","Vs RHP SO"),("1wk_vr_pa","Vs RHP PA"),("1wk_vr_bb","Vs RHP BB"),("1wk_vr_hbp","Vs RHP HBP"),("1wk_vr_ab","Vs RHP AB"),
+                  ("1wk_vr_rbi","Vs RHP RBI"),("1wk_vr_pitches_per_pa","Vs RHP P/PA"),("1wk_vr_avg","Vs RHP AVG"),("1wk_vr_obp","Vs RHP OBP"),("1wk_vr_slug","Vs RHP SLG"),
+                  ("1wk_vr_ops","Vs RHP OPS"),("1wk_vr_babip","Vs RHP BABIP"),("1wk_risp_gp","RISP GP"),("1wk_risp_h","RISP H"),("1wk_risp_2b","RISP 2B"),
+                  ("1wk_risp_3b","RISP 3B"),("1wk_risp_hr","RISP HR"),("1wk_risp_tb","RISP TB"),("1wk_risp_so","RISP SO"),("1wk_risp_pa","RISP PA"),
+                  ("1wk_risp_bb","RISP BB"),("1wk_risp_hbp","RISP HBP"),("1wk_risp_ab","RISP AB"),("1wk_risp_rbi","RISP RBI"),("1wk_risp_pitches_per_pa","RISP P/PA"),
+                  ("1wk_risp_avg","RISP AVG"),("1wk_risp_obp","RISP OBP"),("1wk_risp_slug","RISP SLG"),("1wk_risp_ops","RISP OPS"),("1wk_risp_babip","RISP BABIP")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+          
+          <!-- Pitcher Stats Dropdown -->
+          <details class="column-dropdown">
+            <summary>Pitcher Stats</summary>
+            <div class="dropdown-content">
+              <input type="text" class="column-search" placeholder="Search Pitcher Stats..." data-group="pitcher_stats">
+              <div class="column-group" data-group="pitcher_stats">
+                <strong>Season</strong>
+                {% for key,label in [
+                  ("season_ovr_GP","GP"),("season_ovr_IP","IP"),("season_ovr_H","H"),("season_ovr_ER","ER"),("season_ovr_HR","HR"),
+                  ("season_ovr_BB","BB"),("season_ovr_K","K"),("season_ovr_P","P"),("season_ovr_P/G","P/G"),("season_ovr_BAA","BAA"),
+                  ("season_ovr_WHIP","WHIP"),("season_ovr_CS%","CS%"),("season_ovr_R/9","R/9"),("season_ovr_K/9","K/9"),("season_ovr_BB/9","BB/9"),
+                  ("season_ovr_HR/9","HR/9"),("season_ovr_H/9","H/9"),("season_ovr_K/BB","K/BB"),("season_ovr_BABIP","BABIP"),("season_ovr_OBA","OBA"),
+                  ("season_ovr_SLGA","SLGA"),("season_ovr_OPS","OPS"),("season_risp_GP","RISP GP"),("season_risp_IP","RISP IP"),("season_risp_H","RISP H"),
+                  ("season_risp_ER","RISP ER"),("season_risp_HR","RISP HR"),("season_risp_BB","RISP BB"),("season_risp_K","RISP K")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+                
+                <strong>3-Week</strong>
+                {% for key,label in [
+                  ("3wk_ovr_GP","GP"),("3wk_ovr_IP","IP"),("3wk_ovr_H","H"),("3wk_ovr_ER","ER"),("3wk_ovr_HR","HR"),
+                  ("3wk_ovr_BB","BB"),("3wk_ovr_K","K"),("3wk_ovr_P","P"),("3wk_ovr_P/G","P/G"),("3wk_ovr_BAA","BAA"),
+                  ("3wk_ovr_WHIP","WHIP"),("3wk_ovr_CS%","CS%"),("3wk_ovr_R/9","R/9"),("3wk_ovr_K/9","K/9"),("3wk_ovr_BB/9","BB/9"),
+                  ("3wk_ovr_HR/9","HR/9"),("3wk_ovr_H/9","H/9"),("3wk_ovr_K/BB","K/BB"),("3wk_ovr_BABIP","BABIP"),("3wk_ovr_OBA","OBA"),
+                  ("3wk_ovr_SLGA","SLGA"),("3wk_ovr_OPS","OPS"),("3wk_risp_GP","RISP GP"),("3wk_risp_IP","RISP IP"),("3wk_risp_H","RISP H"),
+                  ("3wk_risp_ER","RISP ER"),("3wk_risp_HR","RISP HR"),("3wk_risp_BB","RISP BB"),("3wk_risp_K","RISP K")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+                
+                <strong>1-Week</strong>
+                {% for key,label in [
+                  ("1wk_ovr_GP","GP"),("1wk_ovr_IP","IP"),("1wk_ovr_H","H"),("1wk_ovr_ER","ER"),("1wk_ovr_HR","HR"),
+                  ("1wk_ovr_BB","BB"),("1wk_ovr_K","K"),("1wk_ovr_P","P"),("1wk_ovr_P/G","P/G"),("1wk_ovr_BAA","BAA"),
+                  ("1wk_ovr_WHIP","WHIP"),("1wk_ovr_CS%","CS%"),("1wk_ovr_R/9","R/9"),("1wk_ovr_K/9","K/9"),("1wk_ovr_BB/9","BB/9"),
+                  ("1wk_ovr_HR/9","HR/9"),("1wk_ovr_H/9","H/9"),("1wk_ovr_K/BB","K/BB"),("1wk_ovr_BABIP","BABIP"),("1wk_ovr_OBA","OBA"),
+                  ("1wk_ovr_SLGA","SLGA"),("1wk_ovr_OPS","OPS"),("1wk_risp_GP","RISP GP"),("1wk_risp_IP","RISP IP"),("1wk_risp_H","RISP H"),
+                  ("1wk_risp_ER","RISP ER"),("1wk_risp_HR","RISP HR"),("1wk_risp_BB","RISP BB"),("1wk_risp_K","RISP K")
+                ] %}
+                  <label>
+                    <input type="checkbox"
+                           data-key="{{ key }}"
+                           {% if key in default_keys %}checked{% endif %}>
+                    {{ label }}
+                  </label>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="pagination-controls">
+          <label for="pageSizeSelect">Show</label>
+          <select id="pageSizeSelect">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+          <span>per page</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="predictionsTable">
+        <thead>
+          <tr>
+            {# Only the default nine headers are rendered here #}
+            <th data-key="card"></th>
+            <th data-sort-key="name" data-key="name">Name</th>
+            <th data-sort-key="ovr" data-key="ovr">Overall</th>
+            <th data-sort-key="delta_rank_pred" data-key="delta_rank_pred">AI-Prediction</th>
+            <th data-sort-key="confidence_percentage" data-key="confidence_percentage">Confidence %</th>
+            <th data-sort-key="qs_pred" data-key="qs_pred">QS Avg</th>
+            <th data-sort-key="market_price" data-key="market_price">Price</th>
+            <th data-sort-key="predicted_profit" data-key="predicted_profit">Profit</th>
+            <th data-sort-key="predicted_profit_pct" data-key="predicted_profit_pct">Profit %</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for player in full_data %}
+            <tr
+              data-rarity="{{ player.rarity|lower }}"
+              data-name="{{ player.name }}"
+              data-team="{{ player.team_short_name }}"
+              data-pos="{{ player.display_position }}"
+              data-age="{{ player.age }}"
+              data-ovr="{{ player.ovr }}"
+              data-delta_rank_pred="{{ player.delta_rank_pred }}"
+              data-confidence_percentage="{{ player.confidence_percentage }}"
+              data-uuid="{{ player.uuid }}"
+            >
+              {# Only default nine <td> cells #}
+                <td data-key="card">
+                    <a href="{{ url_for('player', uuid=player.uuid) }}">
+                      <img src="{{ player.baked_img }}" alt="{{ player.name }}" class="card-icon">
+                    </a>
+                </td>
+              <td data-key="name">{{ player.name }}</td>
+              <td data-key="ovr">{{ player.ovr }}</td>
+              <td data-key="delta_rank_pred" class="prediction-value">
+                {% if player.delta_rank_pred >= 0 %}+{% endif %}{{ player.delta_rank_pred }}
+              </td>
+              <td data-key="confidence_percentage">{{ player.confidence_percentage|round(1) }}%</td>
+              <td data-key="qs_pred" class="qs-pred">-</td>
+              <td data-key="market_price" class="market-price">-</td>
+              <td data-key="predicted_profit" class="pred-profit">-</td>
+              <td data-key="predicted_profit_pct" class="pred-profit-pct">-</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="paginationNav" class="pagination-nav">
+      <button id="prevPage" disabled>Prev</button>
+      <span id="pageInfo"></span>
+      <button id="nextPage" disabled>Next</button>
+    </div>
+  </section>
+</main>
+
+{# ========== Embed full_data as JSON so JS can dynamically pull any field ========== #}
+<script>
+  // allData is an array of objects; each object has every key from web_data.csv
+  const allData = {{ full_data | tojson }};
+</script>
+
+{# ========== Include your JS after that ========== #}
+<script src="{{ url_for('static', filename='js/tableHandler.js') }}"></script>
+{% endblock %}

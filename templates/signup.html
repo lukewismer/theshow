@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/signup.module.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <!-- Left Brand Panel -->
+    <div class="brand-panel">
+        <div class="brand-overlay"></div>
+        <div class="brand-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-baseball-ball"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-part-1">Roster</span><span class="logo-part-2">Predict</span>
+                </div>
+            </div>
+            
+            <h1 class="brand-heading">Join the <span>#1</span> MLB The Show Prediction Platform</h1>
+            
+            <ul class="brand-features">
+                <li>
+                    <i class="fas fa-chart-line feature-icon"></i>
+                    <span>AI-powered roster predictions with 96% accuracy</span>
+                </li>
+                <li>
+                    <i class="fas fa-users feature-icon"></i>
+                    <span>Join 2,000+ successful investors</span>
+                </li>
+                <li>
+                    <i class="fas fa-bolt feature-icon"></i>
+                    <span>Real-time updates and alerts</span>
+                </li>
+            </ul>
+            
+            <div class="testimonial">
+                <p>"RosterPredict transformed how I invest in MLB The Show. I double my stubs every update!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">WZ</div>
+                    <div>
+                        <div>Wizzy4791</div>
+                        <div class="author-rank">Diamond Tier Investor</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Form Panel -->
+    <div class="form-panel">
+        <div class="auth-header">
+            <h2>Create Your Account</h2>
+            <p>Join our community of MLB The Show investors</p>
+        </div>
+        
+        <form id="signup-form" class="auth-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="rating">Your Skill Rating (Optional)</label>
+                <input type="number" id="rating" class="form-input" placeholder="100-2000" min="100" max="2000">
+            </div>
+            
+            <div class="form-group file-upload">
+                <label>Profile Picture</label>
+                <label for="profilePicFile" class="file-label">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Choose Profile Picture (optional)
+                </label>
+                <input type="file" id="profilePicFile" accept="image/*" style="display:none">
+                <div id="file-name" class="file-name">No file chosen</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" class="form-input" placeholder="Create a password" required>
+                    <span class="toggle-password" id="toggle-password">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <div class="password-container">
+                    <input type="password" id="confirm-password" class="form-input" placeholder="Confirm your password" required>
+                    <span class="toggle-password" id="toggle-confirm">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn">Sign Up</button>
+            <p id="error-msg" class="error-msg"></p>
+        </form>
+        
+        <div class="login-link">
+            Already have an account? <a href="/login">Log In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+  <script type="module">
+    // Auth imports
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytes,
+      getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-storage.js";
+
+    const auth    = getAuth();
+    const db      = getFirestore();
+    const storage = getStorage();
+
+    const form       = document.getElementById("signup-form");
+    const fileInput  = document.getElementById("profilePicFile");
+    const fileLabel  = document.querySelector(".file-label");
+    const fileNameEl = document.getElementById("file-name");
+    const errorMsg   = document.getElementById("error-msg");
+    
+    // Password toggle functionality
+    const togglePassword = document.getElementById('toggle-password');
+    const toggleConfirm = document.getElementById('toggle-confirm');
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirm-password');
+    
+    // Toggle password visibility
+    function togglePasswordVisibility(input, toggle) {
+      const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+      input.setAttribute('type', type);
+      toggle.querySelector('i').classList.toggle('fa-eye');
+      toggle.querySelector('i').classList.toggle('fa-eye-slash');
+    }
+    
+    togglePassword.addEventListener('click', () => togglePasswordVisibility(passwordInput, togglePassword));
+    toggleConfirm.addEventListener('click', () => togglePasswordVisibility(confirmInput, toggleConfirm));
+
+    // Show chosen file name
+    fileLabel.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => {
+      fileNameEl.textContent = fileInput.files[0]?.name || "No file chosen";
+    });
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      errorMsg.textContent = "";
+
+      const username = form.username.value.trim();
+      const email    = form.email.value.trim();
+      const password = form.password.value;
+      const confirm  = form["confirm-password"].value;
+      const rating   = parseInt(form.rating.value) || 0;
+
+      if (password !== confirm) {
+        return errorMsg.textContent = "Passwords do not match.";
+      }
+      
+      if (password.length < 6) {
+        return errorMsg.textContent = "Password must be at least 6 characters.";
+      }
+      
+      if (rating && (rating < 100 || rating > 2000)) {
+        return errorMsg.textContent = "Rating must be between 100 and 2000.";
+      }
+
+      try {
+        // Show loading state
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+        submitBtn.disabled = true;
+        
+        // 1) Create user
+        const { user } = await createUserWithEmailAndPassword(auth, email, password);
+
+        // 2) If they picked a file, upload it
+        let photoURL = "";
+        if (fileInput.files.length) {
+          const file = fileInput.files[0];
+          const ext  = file.name.split(".").pop();
+          const path = `profilePics/${user.uid}.${ext}`;
+          const imgRef = storageRef(storage, path);
+
+          await uploadBytes(imgRef, file);
+          photoURL = await getDownloadURL(imgRef);
+        }
+
+        // 3) Update Auth profile with displayName & photoURL
+        await updateProfile(user, {
+          displayName: username,
+          photoURL
+        });
+
+        // 4) Write Firestore user doc
+        await setDoc(doc(db, "users", user.uid), {
+          uid:        user.uid,
+          username,
+          email:      user.email,
+          profilePic: photoURL,
+          rating,
+          createdAt:  serverTimestamp()
+        });
+
+        // Show success message
+        errorMsg.textContent = "Account created successfully! Redirecting...";
+        errorMsg.style.color = "#4db8b8";
+        
+        // 5) Redirect after delay
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.style.color = "#ff6b6b";
+        
+        // Reset button
+        const submitBtn = document.querySelector('.submit-btn');
+        submitBtn.innerHTML = 'Sign Up';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+{% endblock %}

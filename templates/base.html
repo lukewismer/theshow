@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DiamondInsights - AI Roster Predictions</title>
+
+  <!-- Fonts & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Your global styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/globals.css') }}"/>
+  {% block styles %}{% endblock %}
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <span class="logo-part-1">Diamond</span>
+        <span class="logo-part-2">Insights</span>
+      </a>
+    
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-link {% if active_page=='index' %}active{% endif %}">Home</a>
+        <a href="{{ url_for('predictions') }}" class="nav-link {% if active_page=='predictions' %}active{% endif %}">Predictions</a>
+        <a href="{{ url_for('investment') }}" class="nav-link {% if active_page=='investment' %}active{% endif %}">Investment Tracker</a>
+        <a href="#community" class="nav-link">Community</a>
+      </div>
+    
+      <!-- Search container will now be centered -->
+      <div class="autocomplete-container">
+        <input
+          type="text"
+          id="player-search-input"
+          class="autocomplete-input"
+          placeholder="Search player..."
+          autocomplete="off"
+        >
+        <div id="autocomplete-list" class="autocomplete-items"></div>
+      </div>
+    
+      <!-- Auth links -->
+      <div class="nav-auth-links"></div>
+    
+      <!-- Mobile fallback -->
+      <div class="auth-buttons-mobile">
+        <a href="/signup" class="btn btn-primary">Sign Up</a>
+        <a href="/login" class="btn btn-secondary">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo">
+          <span class="logo-part-1">Diamond</span>
+          <span class="logo-part-2">Insights</span>
+        </a>
+        <p>AI-powered roster predictions for MLB The Show</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="link-group">
+          <h4>Navigation</h4>
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('predictions') }}">Predictions</a>
+          <a href="{{ url_for('investment') }}">Investment Sheet</a>
+        </div>
+        <div class="link-group">
+          <h4>Account</h4>
+          <a href="/signup">Sign Up</a>
+          <a href="/login">Login</a>
+          <a href="/account">My Account</a>
+        </div>
+        <div class="link-group">
+          <h4>Community</h4>
+          <a href="#">Discord</a>
+          <a href="#">Twitter</a>
+          <a href="#">YouTube</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2024 DiamondInsights. All rights reserved.</p>
+    </div>
+  </footer>
+
+
+  {% block scripts %}
+  <!-- Firebase JS SDK v11 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey:           "AIzaSyAzyyRrIjigUjOjBIiJiInvZbNnivB2zGc",
+      authDomain:       "theshow-587b1.firebaseapp.com",
+      projectId:        "theshow-587b1",
+      storageBucket:    "theshow-587b1.appspot.com",
+      messagingSenderId:"841491877742",
+      appId:            "1:841491877742:web:8366dc78539abafcfebb7f",
+      measurementId:    "G-40VD5243KE"
+    };
+
+    // Initialize Firebase & services
+    const app       = initializeApp(firebaseConfig);
+    const auth      = getAuth(app);
+    const analytics = getAnalytics(app);
+
+    // Auth state listener
+    onAuthStateChanged(auth, user => {
+      const slot = document.querySelector('.nav-auth-links');
+      if (user) {
+        slot.innerHTML = `
+          <a href="/account" class="nav-link">Account</a>
+          <a href="#" id="logout-btn" class="nav-link">Logout</a>
+        `;
+        document.getElementById('logout-btn').onclick = e => {
+          e.preventDefault();
+          signOut(auth);
+        };
+      } else {
+        slot.innerHTML = `
+          <a href="/login" class="nav-link">Login</a>
+          <a href="/signup" class="btn btn-primary">Sign Up</a>
+        `;
+      }
+    });
+  </script>
+
+  <script>
+    // ------------------------------------------------------------
+    // We rendered “all_players” (name + uuid) in the context_processor.
+    // Format: [ { name: "Mike Trout", uuid: "xxx-uuid-here" }, … ]
+    // ------------------------------------------------------------
+    const allPlayers = {{ all_players | tojson }};
+
+    const inputEl   = document.getElementById('player-search-input');
+    const listEl    = document.getElementById('autocomplete-list');
+
+    // 1) Listen for user typing
+    inputEl.addEventListener('input', function() {
+      const val = this.value.trim().toLowerCase();
+      // Clear any existing suggestions
+      listEl.innerHTML = '';
+      if (!val) {
+        return; // nothing typed → no suggestions
+      }
+
+      // 2) Find up to, say, 5 matching players (case-insensitive substring)
+      const matches = allPlayers.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
+      if (matches.length === 0) {
+        return; // no matches → no dropdown
+      }
+
+      // 3) Build and show suggestion items
+      matches.forEach(p => {
+        const item = document.createElement('div');
+        item.classList.add('autocomplete-item');
+        // You could highlight the matching substring if you like; for now show full name:
+        item.textContent = p.name;
+        item.dataset.uuid = p.uuid;
+        listEl.appendChild(item);
+      });
+    });
+
+    // 4) When user clicks on one suggestion, redirect at once
+    listEl.addEventListener('click', function(e) {
+      if (e.target && e.target.matches('.autocomplete-item')) {
+        const uuid = e.target.dataset.uuid;
+        if (uuid) {
+          window.location.href = `/player/${uuid}`;
+        }
+      }
+    });
+
+    // 5) If user clicks outside of input or suggestions, close the dropdown
+    document.addEventListener('click', function(e) {
+      if (e.target !== inputEl && e.target.parentNode !== listEl) {
+        listEl.innerHTML = '';
+      }
+    });
+
+    // 6) Prevent “Enter” from doing anything
+    inputEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+      }
+    });
+  </script>
+  {% endblock %}
+
+</body>
+</html>

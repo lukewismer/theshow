@@ -1,0 +1,313 @@
+/* Reusing variables from globals.css */
+.auth-container {
+    display: flex;
+    width: 100%;
+}
+
+main {
+    padding-top: 80px; 
+    min-height: calc(100vh - 150px);
+}
+
+/* Left Brand Panel */
+.brand-panel {
+    flex: 1;
+    background: linear-gradient(135deg, rgba(18, 99, 221, 0.25), rgba(26, 26, 26, 0.95)), 
+                url('https://www.shutterstock.com/image-illustration/modern-sport-stadium-night-baseball-600nw-2462217549.jpg') center/cover;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.brand-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
+
+.brand-content {
+    position: relative;
+    z-index: 2;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 3rem;
+}
+
+.logo-icon {
+    font-size: 2.5rem;
+    color: var(--accent-primary);
+}
+
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.logo-part-1 {
+    color: var(--accent-secondary);
+}
+
+.logo-part-2 {
+    color: var(--accent-primary);
+}
+
+.brand-heading {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+.brand-heading span {
+    color: var(--accent-primary);
+}
+
+.brand-features {
+    list-style: none;
+    margin: 2rem 0;
+}
+
+.brand-features li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.2rem;
+    font-size: 1.1rem;
+}
+
+.feature-icon {
+    color: var(--accent-primary);
+    font-size: 1.4rem;
+}
+
+.testimonial {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border-left: 4px solid var(--accent-primary);
+}
+
+.testimonial p {
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-primary), var(--meter-new-up));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.author-rank {
+    font-size: 0.9rem; 
+    color: var(--text-secondary);
+}
+
+/* Right Form Panel */
+.form-panel {
+    flex: 1;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: var(--bg-light);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.auth-header h2 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-secondary);
+}
+
+.auth-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-input {
+    padding: 1rem 1.2rem;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(18, 99, 221, 0.2);
+}
+
+.file-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.file-label {
+    padding: 1rem 1.2rem;
+    border-radius: var(--border-radius);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    background-color: var(--bg-light);
+    color: var(--text-secondary);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.file-label:hover {
+    border-color: var(--accent-primary);
+    background-color: rgba(18, 99, 221, 0.1);
+    color: var(--accent-secondary);
+}
+
+.file-name {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+    padding: 0 0.5rem;
+}
+
+.password-container {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.submit-btn {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, var(--accent-primary), #0a4cb5);
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(10, 76, 181, 0.25);
+}
+
+.error-msg {
+    color: var(--meter-new-down);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-align: center;
+    min-height: 1.5rem;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.login-link a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .auth-container {
+        flex-direction: column;
+    }
+    
+    .brand-panel {
+        padding: 2rem;
+        min-height: 50vh;
+    }
+    
+    .form-panel {
+        padding: 2rem;
+    }
+    
+    .brand-heading {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .brand-panel, .form-panel {
+        padding: 1.5rem;
+    }
+    
+    .logo-text {
+        font-size: 1.5rem;
+    }
+    
+    .brand-heading {
+        font-size: 1.8rem;
+    }
+    
+    .auth-header h2 {
+        font-size: 1.8rem;
+    }
+}

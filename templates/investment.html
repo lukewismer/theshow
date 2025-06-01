@@ -1,0 +1,632 @@
+{% extends "base.html" %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/investment.module.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="investment-container">
+  <section class="investment-hero">
+    <h1 class="hero-title">Investment Sheet</h1>
+  </section>
+
+  <!--──────────── Portfolio Summary ────────────-->
+  <div class="portfolio-summary">
+    <div class="summary-card">
+      <span class="label">Total Invested</span>
+      <span class="value" id="sum-invested">$0</span>
+    </div>
+    <div class="summary-card">
+      <span class="label">AI Value</span>
+      <span class="value" id="sum-predvalue">$0</span>
+    </div>
+    <div class="summary-card">
+      <span class="label">AI Profit/Loss</span>
+      <span class="value" id="sum-pl">$0</span>
+    </div>
+    <div class="summary-card">
+      <span class="label">Your Value</span>
+      <span class="value" id="sum-userpredvalue">$0</span>
+    </div>
+    <div class="summary-card">
+      <span class="label">Your Profit/Loss</span>
+      <span class="value" id="sum-userprofit">$0</span>
+    </div>
+  </div>
+
+  <section class="investment-content">
+    <!-- ────── Add Investment Form ────── -->
+    <div class="investment-form">
+      <div class="autocomplete-container">
+        <input
+          type="text"
+          id="inv-player-input"
+          class="autocomplete-input"
+          placeholder="Search player…"
+          autocomplete="off"
+        />
+        <div id="inv-autocomplete-list" class="autocomplete-items"></div>
+      </div>
+
+      <input
+        type="number"
+        id="inv-qty-input"
+        placeholder="Quantity"
+        min="1"
+        step="1"
+      />
+      <input
+        type="number"
+        id="inv-avgprice-input"
+        placeholder="Avg Buy Price"
+        min="0"
+        step="any"
+      />
+      <input
+        type="number"
+        id="inv-projovr-input"
+        placeholder="Your Projected OVR"
+        min="0"
+        max="99"
+        step="1"
+      />
+      <button id="add-investment-btn" disabled>
+        <i class="fas fa-plus-circle"></i> Add
+      </button>
+    </div>
+
+    <!-- ────── Investments Table ────── -->
+    <div class="investment-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Quantity</th>
+            <th>QS Value</th>            <!-- new column -->
+            <th>Avg Buy Price</th>
+            <th>Market Price</th>
+            <th>AI OVR</th>
+            <th>AI Price</th>
+            <th>AI P/L</th>
+            <th>AI %</th>
+            <th>Your OVR</th>
+            <th>Your Price</th>
+            <th>Your P/L</th>
+            <th>Your %</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="investments-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+
+{% block scripts %}
+  {{ super() }}
+
+  <script type="module">
+    import {
+      getFirestore,
+      collection,
+      doc,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      onSnapshot,
+      query,
+      orderBy,
+      serverTimestamp
+    }
+    from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+
+    // ────────────────── Initialize Firestore & Auth ──────────────────
+    const db   = getFirestore();
+    const auth = getAuth();
+
+    // ────────────────── Element References ──────────────────
+    const playerInput      = document.getElementById("inv-player-input");
+    const autocompleteEl   = document.getElementById("inv-autocomplete-list");
+    const qtyInput         = document.getElementById("inv-qty-input");
+    const avgPriceInput    = document.getElementById("inv-avgprice-input");
+    const projOvrInput     = document.getElementById("inv-projovr-input");
+    const addBtn           = document.getElementById("add-investment-btn");
+    const tableBody        = document.getElementById("investments-body");
+
+    // Summary elements
+    const sumInvestedEl       = document.getElementById("sum-invested");
+    const sumPredValueEl      = document.getElementById("sum-predvalue");
+    const sumPlEl             = document.getElementById("sum-pl");
+    const sumUserPredValueEl  = document.getElementById("sum-userpredvalue");
+    const sumUserProfitEl     = document.getElementById("sum-userprofit");
+
+    // Holds the currently selected player { name, uuid }
+    let selectedPlayer = null;
+
+    // Pull “full_data” from Jinja context (autocomplete, OVR, predicted_rank, baked_img, predicted_ev_profit)
+    const allData = {{ full_data | tojson }};
+
+    // Accumulators for portfolio summary
+    let summaryData = {
+      cost:            0,   // ∑(quantity × avgBuyPrice)
+      aiPredValue:     0,   // ∑(quantity × AI_predicted_price)
+      aiProfit:        0,   // ∑(AI_predValue − cost)
+      userPredValue:   0,   // ∑(quantity × user_predicted_price)
+      userProfit:      0    // ∑(user_predictedValue − cost)
+    };
+
+    // ────────────────── Utility: JS version of qs_value(ovr) ──────────────────
+    function qsValue(ovr) {
+      if (ovr < 65)        return 5;
+      if (ovr < 75)        return 25;
+      if (ovr === 75)      return 50;
+      if (ovr === 76)      return 75;
+      if (ovr === 77)      return 100;
+      if (ovr === 78)      return 125;
+      if (ovr === 79)      return 150;
+      if (ovr === 80)      return 400;
+      if (ovr === 81)      return 600;
+      if (ovr === 82)      return 900;
+      if (ovr === 83)      return 1200;
+      if (ovr === 84)      return 1500;
+      if (ovr === 85)      return 3000;
+      if (ovr === 86)      return 3750;
+      if (ovr === 87)      return 4500;
+      if (ovr === 88)      return 5500;
+      if (ovr === 89)      return 7000;
+      if (ovr === 90)      return 8000;
+      if (ovr === 91)      return 9000;
+      if (ovr >= 92)       return 10000;
+      return 0;
+    }
+
+    // ────────────────── Autocomplete Logic ──────────────────
+    playerInput.addEventListener("input", () => {
+      const val = playerInput.value.trim().toLowerCase();
+      autocompleteEl.innerHTML = "";
+      selectedPlayer = null;
+      addBtn.disabled = true;
+
+      if (!val) return;
+
+      // pick up to 5 substring‐matches by player name
+      const matches = allData
+        .filter(p => p.name.toLowerCase().includes(val))
+        .slice(0, 5);
+
+      matches.forEach(p => {
+        const item = document.createElement("div");
+        item.classList.add("autocomplete-item");
+        item.textContent = p.name;
+        item.dataset.uuid = p.uuid;
+        autocompleteEl.appendChild(item);
+      });
+    });
+
+    autocompleteEl.addEventListener("click", (e) => {
+      if (!e.target.matches(".autocomplete-item")) return;
+      const name = e.target.textContent;
+      const uuid = e.target.dataset.uuid;
+      playerInput.value = name;
+      selectedPlayer = { name, uuid };
+      autocompleteEl.innerHTML = "";
+      checkFormValidity();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (e.target !== playerInput && !autocompleteEl.contains(e.target)) {
+        autocompleteEl.innerHTML = "";
+      }
+    });
+
+    // ────────────────── Enable “Add Investment” Only When All Fields Valid ──────────────────
+    [qtyInput, avgPriceInput, projOvrInput].forEach(ctrl =>
+      ctrl.addEventListener("input", checkFormValidity)
+    );
+    function checkFormValidity() {
+      const qty      = parseInt(qtyInput.value);
+      const avg      = parseFloat(avgPriceInput.value);
+      const projOvr  = parseInt(projOvrInput.value);
+
+      if (
+        selectedPlayer &&
+        !isNaN(qty) && qty > 0 &&
+        !isNaN(avg) && avg >= 0 &&
+        !isNaN(projOvr) && projOvr >= 0
+      ) {
+        addBtn.disabled = false;
+      } else {
+        addBtn.disabled = true;
+      }
+    }
+
+    // ────────────────── Auth & Firestore Subscription ──────────────────
+    let currentUser = null;
+    let unsubscribeInvestments = null;
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        startInvestmentListener(user.uid);
+      } else {
+        currentUser = null;
+        if (unsubscribeInvestments) unsubscribeInvestments();
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="13" style="text-align:center; padding:1rem;">
+              Please <a href="/login">log in</a> to track investments.
+            </td>
+          </tr>
+        `;
+      }
+    });
+
+    // ────────────────── Add New Investment ──────────────────
+    addBtn.addEventListener("click", async () => {
+      if (!currentUser || !selectedPlayer) return;
+      const qty      = parseInt(qtyInput.value);
+      const avg      = parseFloat(avgPriceInput.value);
+      const projOvr  = parseInt(projOvrInput.value);
+      if (isNaN(qty) || qty <= 0 || isNaN(avg) || avg < 0 || isNaN(projOvr) || projOvr < 0) {
+        return;
+      }
+
+      try {
+        await addDoc(
+          collection(db, "users", currentUser.uid, "investments"),
+          {
+            playerName:        selectedPlayer.name,
+            playerUUID:        selectedPlayer.uuid,
+            quantity:          qty,
+            avgBuyPrice:       avg,
+            userProjectedOvr:  projOvr,
+            createdAt:         serverTimestamp()
+          }
+        );
+        // Reset form
+        playerInput.value    = "";
+        qtyInput.value       = "";
+        avgPriceInput.value  = "";
+        projOvrInput.value   = "";
+        selectedPlayer       = null;
+        addBtn.disabled      = true;
+      } catch (err) {
+        console.error("Error adding investment:", err);
+      }
+    });
+
+    // ────────────────── Real‐time Listener ──────────────────
+    function startInvestmentListener(uid) {
+      if (unsubscribeInvestments) {
+        unsubscribeInvestments();
+      }
+
+      // Reset summary totals
+      summaryData = {
+        cost:            0,
+        aiPredValue:     0,
+        aiProfit:        0,
+        userPredValue:   0,
+        userProfit:      0
+      };
+      updateSummaryUI();
+
+      const invQuery = query(
+        collection(db, "users", uid, "investments"),
+        orderBy("createdAt", "desc")
+      );
+
+      unsubscribeInvestments = onSnapshot(invQuery, snapshot => {
+        tableBody.innerHTML = "";
+        // Reset summary whenever the set changes:
+        summaryData = {
+          cost:            0,
+          aiPredValue:     0,
+          aiProfit:        0,
+          userPredValue:   0,
+          userProfit:      0
+        };
+        updateSummaryUI();
+
+        if (snapshot.empty) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="13" style="text-align:center; padding:1rem;">
+                No investments yet. Add one above!
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        snapshot.docs.forEach(docSnap => {
+          const data = docSnap.data();
+          const id   = docSnap.id;
+          renderInvestmentRow(id, data);
+        });
+      });
+    }
+
+    // ────────────────── Render One Investment Row ──────────────────
+    async function renderInvestmentRow(docId, data) {
+      const row = document.createElement("tr");
+      row.dataset.docId = docId;
+
+      const totalCost = data.quantity * data.avgBuyPrice;
+
+      // Look up baked_img, ovr, and AI predicted_rank:
+      const playerRecord = allData.find(p => p.uuid === data.playerUUID) || {};
+      const cardUrl      = playerRecord.baked_img || "";
+      const ovr          = playerRecord.ovr || 0;
+      const aiPredOvr    = playerRecord.predicted_rank || 0;
+
+      // Compute QS Value based on current overall:
+      const qsValRounded = Math.round(qsValue(ovr));
+
+      row.innerHTML = `
+        <td>
+          <img src="${cardUrl}"
+               alt="${data.playerName}"
+               class="player-card-image">
+        </td>
+        <td class="inv-qty">${data.quantity}</td>
+        <td class="qs-value">$${ qsValRounded }</td>             <!-- new QS Value cell -->
+        <td class="inv-avg">$${ Math.round(data.avgBuyPrice) }</td>
+        <td class="market-price">…</td>
+        <td>${aiPredOvr}</td>
+        <td class="pred-price">…</td>
+        <td class="profit-loss">…</td>
+        <td class="profit-pct">…</td>
+        <td class="user-proj-ovr">…</td>
+        <td class="user-pred-price">…</td>
+        <td class="user-profit-loss">…</td>
+        <td class="user-profit-pct">…</td>
+        <td>
+            <div class="action-buttons">
+                <button class="update-btn">Update</button>
+                <button class="delete-btn">Delete</button>
+            </div>
+        </td>
+      `;
+      tableBody.appendChild(row);
+
+      // Delete Handler
+      row.querySelector(".delete-btn").addEventListener("click", async () => {
+        if (!currentUser) return;
+        try {
+          await deleteDoc(
+            doc(db, "users", currentUser.uid, "investments", docId)
+          );
+        } catch (err) {
+          console.error("Failed to delete investment:", err);
+        }
+      });
+
+      // Update Handler (inline form toggle)
+      row.querySelector(".update-btn").addEventListener("click", () => {
+        toggleUpdateForm(row, data);
+      });
+
+      // Fetch Market Price and AI QS Price
+      try {
+        const resp = await fetch(`/api/market_price/${data.playerUUID}`);
+        const json = await resp.json();
+
+        // — Market Price (rounded)
+        const marketPrice        = parseFloat(json.buy ?? 0);
+        const marketPriceRounded = Math.round(marketPrice);
+        row.querySelector(".market-price").textContent = `$${ marketPriceRounded }`;
+
+        // — AI Predicted Price (qs_pred, rounded)
+        const aiPredPrice        = parseFloat(json.qs_pred ?? 0);
+        const aiPredPriceRounded = Math.round(aiPredPrice);
+        row.querySelector(".pred-price").textContent  = `$${ aiPredPriceRounded }`;
+
+        // — AI Predicted Value = aiPredPrice × quantity, then round
+        const aiPredValueRaw      = aiPredPrice * data.quantity;
+        const aiPredValueRounded  = Math.round(aiPredValueRaw);
+
+        // — AI Profit/Loss = aiPredValue − totalCost, then round
+        const aiProfitRaw         = aiPredValueRaw - totalCost;
+        const aiProfitRounded     = Math.round(aiProfitRaw);
+        const aiProfitPctRaw      = totalCost > 0
+                                 ? ((aiProfitRaw / totalCost) * 100)
+                                 : 0;
+        const aiProfitPctRounded  = Math.round(aiProfitPctRaw);
+
+        const aiPlCell  = row.querySelector(".profit-loss");
+        aiPlCell.textContent = `$${ aiProfitRounded }`;
+        aiPlCell.className   = aiProfitRounded >= 0
+                              ? "profit-loss positive"
+                              : "profit-loss negative";
+
+        const aiPctCell = row.querySelector(".profit-pct");
+        aiPctCell.textContent = `${ aiProfitPctRounded }%`;
+        aiPctCell.className   = aiProfitRounded >= 0
+                              ? "profit-pct positive"
+                              : "profit-pct negative";
+
+        // ────── “Your” Projection ──────
+        const userOvr          = parseInt(data.userProjectedOvr ?? 0);
+        const userPredPrice    = qsValue(userOvr);
+        const userPredPriceR   = Math.round(userPredPrice);
+        const userPredValueRaw = userPredPrice * data.quantity;
+        const userPredValueR   = Math.round(userPredValueRaw);
+        const userProfitRaw    = userPredValueRaw - totalCost;
+        const userProfitR      = Math.round(userProfitRaw);
+        const userProfitPctRaw = totalCost > 0
+                               ? ((userProfitRaw / totalCost) * 100)
+                               : 0;
+        const userProfitPctR   = Math.round(userProfitPctRaw);
+
+        row.querySelector(".user-proj-ovr").textContent    = userOvr;
+        row.querySelector(".user-pred-price").textContent = `$${ userPredPriceR }`;
+        row.querySelector(".user-profit-loss").textContent = `$${ userProfitR }`;
+        row.querySelector(".user-profit-loss").className   = userProfitR >= 0
+                                                            ? "user-profit-loss positive"
+                                                            : "user-profit-loss negative";
+        row.querySelector(".user-profit-pct").textContent  = `${ userProfitPctR }%`;
+        row.querySelector(".user-profit-pct").className    = userProfitR >= 0
+                                                            ? "user-profit-pct positive"
+                                                            : "user-profit-pct negative";
+
+        // 8) Accumulate summaryData (all already-rounded values):
+        summaryData.cost         += totalCost;
+        summaryData.aiPredValue  += aiPredValueRounded;
+        summaryData.aiProfit     += aiProfitRounded;
+        summaryData.userPredValue+= userPredValueR;
+        summaryData.userProfit   += userProfitR;
+
+        updateSummaryUI();
+      }
+      catch (err) {
+        console.error("Error fetching prices:", err);
+        // In case of any failure, set every existing column to “Err”
+        [
+          "market-price",
+          "pred-price",
+          "profit-loss",
+          "profit-pct",
+          "user-proj-ovr",
+          "user-pred-price",
+          "user-profit-loss",
+          "user-profit-pct"
+        ].forEach(cls => {
+          const td = row.querySelector("." + cls);
+          if (td) td.textContent = "Err";
+        });
+      }
+    }
+
+    // ────────────────── Update Portfolio‐Summary UI ──────────────────
+    function updateSummaryUI() {
+      const invested   = Math.round(summaryData.cost);
+      const aiPV       = Math.round(summaryData.aiPredValue);
+      const aiPL       = Math.round(summaryData.aiProfit);
+      const userPV     = Math.round(summaryData.userPredValue);
+      const userPL     = Math.round(summaryData.userProfit);
+
+      sumInvestedEl.textContent      = `$${ invested }`;
+      sumPredValueEl.textContent     = `$${ aiPV }`;
+      sumPlEl.textContent            = `$${ aiPL }`;
+      sumPlEl.className              = aiPL >= 0 ? "value positive" : "value negative";
+
+      sumUserPredValueEl.textContent = `$${ userPV }`;
+      sumUserProfitEl.textContent    = `$${ userPL }`;
+      sumUserProfitEl.className      = userPL >= 0 ? "value positive" : "value negative";
+    }
+
+    // ────────────────── Toggle the Inline “Update” Form ──────────────────
+    function toggleUpdateForm(row, data) {
+        if (row.nextElementSibling?.classList?.contains("update-row")) {
+            row.nextElementSibling.remove();
+            return;
+        }
+
+        const existing = document.querySelector(".update-row");
+        if (existing) existing.remove();
+
+        const formRow = document.createElement("tr");
+        formRow.classList.add("update-row");
+        
+        formRow.innerHTML = `
+            <td colspan="14">
+            <div class="update-form-container">
+                <div class="form-group">
+                <label>Quantity Change</label>
+                <input type="number" class="upd-qty" 
+                        placeholder="+ add or – remove" 
+                        step="1">
+                </div>
+                <div class="form-group">
+                <label>Unit Price (if adding)</label>
+                <input type="number" class="upd-price" 
+                        placeholder="Only if adding" 
+                        step="any">
+                </div>
+                <div class="form-group">
+                <label>New Projected OVR</label>
+                <input type="number" class="upd-proj-ovr" 
+                        placeholder="Your OVR" 
+                        min="0" max="99" step="1">
+                </div>
+                <div class="form-buttons">
+                <button class="upd-submit-btn">Submit</button>
+                <button class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+            </td>
+        `;
+
+        row.after(formRow);
+        formRow.querySelector(".upd-proj-ovr").value = data.userProjectedOvr ?? "";
+
+        formRow.querySelector(".cancel-btn").addEventListener("click", () => {
+            formRow.remove();
+        });
+
+      // Submit handler:
+      formRow.querySelector(".upd-submit-btn").addEventListener("click", async () => {
+        const deltaQty     = parseInt(formRow.querySelector(".upd-qty").value);
+        const unitPrice    = parseFloat(formRow.querySelector(".upd-price").value);
+        const newProjOvr   = parseInt(formRow.querySelector(".upd-proj-ovr").value);
+
+        const oldQty       = data.quantity;
+        const oldAvg       = data.avgBuyPrice;
+
+        // Validate the new projected OVR (must be ≥ 0)
+        if (isNaN(newProjOvr) || newProjOvr < 0) {
+          alert("Please enter a valid Projected OVR (≥ 0).");
+          return;
+        }
+
+        let newQty = oldQty;
+        let newAvg = oldAvg;
+
+        // If user changed quantity:
+        if (!isNaN(deltaQty) && deltaQty !== 0) {
+          newQty = oldQty + deltaQty;
+          if (newQty < 0) {
+            alert("Cannot remove more than you own.");
+            return;
+          }
+          if (deltaQty > 0) {
+            // Adding more, must provide a unit price:
+            if (isNaN(unitPrice) || unitPrice < 0) {
+              alert("Please provide a valid unit price when adding more quantity.");
+              return;
+            }
+            newAvg = ((oldQty * oldAvg) + (deltaQty * unitPrice)) / newQty;
+          } else {
+            // Removing some: average remains the same
+            newAvg = oldAvg;
+          }
+        }
+
+        const invRef = doc(db, "users", currentUser.uid, "investments", row.dataset.docId);
+
+        try {
+          if (newQty === 0) {
+            // Delete entire investment if user ends with 0 quantity
+            await deleteDoc(invRef);
+          } else {
+            // Otherwise update qty, avgBuyPrice, and userProjectedOvr
+            await updateDoc(invRef, {
+              quantity:          parseInt(newQty),
+              avgBuyPrice:       Math.round(newAvg),
+              userProjectedOvr:  parseInt(newProjOvr)
+            });
+          }
+          formRow.remove();
+        } catch (err) {
+          console.error("Error updating investment:", err);
+        }
+      });
+    }
+  </script>
+{% endblock %}

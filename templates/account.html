@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/account.module.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="account-container">
+  <div class="account-header">
+    <h2>My Account</h2>
+    <p>Manage your profile, view statistics, and update your settings</p>
+  </div>
+
+  <div class="profile-section">
+    <div class="profile-card">
+      <div class="profile-header">
+        <img id="profile-pic" src="" alt="Profile Picture" class="profile-pic"/>
+        <div class="profile-info">
+          <h3 id="username">—</h3>
+          <div class="username">Ultimate Team Trader</div>
+        </div>
+      </div>
+      
+      <div class="profile-details">
+        <div class="detail-card">
+          <h4>Email</h4>
+          <p id="email">—</p>
+        </div>
+        
+        <div class="detail-card">
+          <h4>Trader Rating</h4>
+          <p class="value">
+            <span id="rating">—</span>
+            <span class="rating-badge">Pro Trader</span>
+          </p>
+        </div>
+        
+        <div class="detail-card">
+          <h4>Account Created</h4>
+          <p>June 15, 2023</p>
+        </div>
+        
+        <div class="detail-card">
+          <h4>Last Active</h4>
+          <p>Today</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="account-stats">
+      <div class="stats-header">
+        <h3>Trader Statistics</h3>
+        <p>Your performance metrics and trading insights</p>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <h5>Total Investments</h5>
+          <p class="value">24</p>
+        </div>
+        
+        <div class="stat-item">
+          <h5>AI Profit</h5>
+          <p class="value positive">+$2,450</p>
+        </div>
+        
+        <div class="stat-item">
+          <h5>Your Profit</h5>
+          <p class="value positive">+$1,870</p>
+        </div>
+        
+        <div class="stat-item">
+          <h5>Success Rate</h5>
+          <p class="value">78%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="account-actions">
+    <div class="action-card">
+      <h4>Update Profile</h4>
+      <p>Change your profile picture, username, or other personal details</p>
+      <button class="btn btn-secondary">Edit Profile</button>
+    </div>
+    
+    <div class="action-card">
+      <h4>Security Settings</h4>
+      <p>Update your password or enable two-factor authentication</p>
+      <button class="btn btn-secondary">Security Center</button>
+    </div>
+    
+    <div class="action-card">
+      <h4>Subscription</h4>
+      <p>Manage your premium subscription and payment details</p>
+      <button class="btn btn-primary">Premium Features</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script type="module">
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+    const auth = getAuth();
+    const db   = getFirestore();
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        // not logged in → redirect to login
+        return window.location.href = "/login";
+      }
+
+      // Fill in email & photoURL
+      document.getElementById("email").textContent = user.email;
+      if (user.photoURL) {
+        document.getElementById("profile-pic").src = user.photoURL;
+      } else {
+        // Default profile picture if none exists
+        document.getElementById("profile-pic").src = "https://via.placeholder.com/100";
+      }
+
+      // Load the Firestore 'users/{uid}' doc
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        document.getElementById("username").textContent = data.username || user.email.split('@')[0];
+        document.getElementById("rating").textContent = data.rating || "85";
+      } else {
+        document.getElementById("username").textContent = user.email.split('@')[0];
+        document.getElementById("rating").textContent = "75";
+      }
+    });
+  </script>
+{% endblock %}

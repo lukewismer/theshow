@@ -1,0 +1,686 @@
+/* investment.module.css */
+
+/* Investment Page Styles */
+.investment-container {
+    margin-top: 80px;
+    padding: 0 2rem 3rem;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.investment-hero {
+    margin-top: 60px;
+    padding: 4rem 2rem 3rem;
+    background: linear-gradient(
+        to right,
+        rgba(18, 99, 221, 0.1),
+        rgba(77, 184, 184, 0.05)
+    );
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.investment-hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(18, 99, 221, 0.15), transparent 70%);
+    z-index: -1;
+}
+
+.investment-hero .hero-title {
+    font-size: 2.8rem;
+    color: var(--accent-secondary);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+/* Portfolio Summary */
+.portfolio-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 1rem 0 3rem;
+}
+
+.summary-card {
+    background: linear-gradient(145deg, rgba(40, 40, 40, 0.7), rgba(30, 30, 30, 0.7));
+    border: 1px solid rgba(77, 184, 184, 0.15);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--accent-primary), var(--meter-new-up));
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border-color: rgba(77, 184, 184, 0.3);
+}
+
+.summary-card .label {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+    font-weight: 500;
+    z-index: 1;
+}
+
+.summary-card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    z-index: 1;
+}
+
+.summary-card .positive {
+    color: var(--positive);
+}
+
+.summary-card .negative {
+    color: var(--negative);
+}
+
+/* Investment Form */
+.investment-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3.5rem;
+    margin-bottom: 2.5rem;
+    padding: 1.8rem;
+    background: linear-gradient(145deg, rgba(45, 45, 45, 0.6), rgba(35, 35, 35, 0.6));
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(77, 184, 184, 0.15);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.autocomplete-container {
+    position: relative;
+    grid-column: 1 / -1;
+}
+
+.autocomplete-input {
+    padding: 0.9rem 1.4rem;
+    border-radius: 50px;
+    border: 1px solid rgba(77, 184, 184, 0.2);
+    background: rgba(30, 30, 30, 0.6);
+    color: var(--text-primary);
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.autocomplete-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(18, 99, 221, 0.3);
+    background: rgba(40, 40, 40, 0.8);
+}
+
+.autocomplete-items {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border: 1px solid rgba(77, 184, 184, 0.2);
+    background: rgba(45, 45, 45, 0.98);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.autocomplete-item {
+    padding: 0.85rem 1.2rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(77, 184, 184, 0.1);
+    transition: background-color 0.2s ease;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover {
+    background-color: rgba(18, 99, 221, 0.15);
+}
+
+.autocomplete-item .card-icon {
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.investment-form input[type="number"] {
+    padding: 0.9rem 1.4rem;
+    border-radius: 50px;
+    border: 1px solid rgba(77, 184, 184, 0.2);
+    background: rgba(30, 30, 30, 0.6);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 100%;
+}
+
+.investment-form input[type="number"]:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(18, 99, 221, 0.3);
+    background: rgba(40, 40, 40, 0.8);
+}
+
+#add-investment-btn {
+    padding: 0.9rem 1.8rem;
+    border: none;
+    background: linear-gradient(135deg, var(--accent-primary), #0a4cb5);
+    color: white;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(10, 76, 181, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+#add-investment-btn:hover {
+    background: linear-gradient(135deg, #0a4cb5, var(--accent-primary));
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(10, 76, 181, 0.35);
+}
+
+#add-investment-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Investment Table */
+.investment-table {
+    width: 100%;
+    overflow-x: auto;
+    background: linear-gradient(145deg, rgba(45, 45, 45, 0.6), rgba(35, 35, 35, 0.6));
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(77, 184, 184, 0.15);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+}
+
+.investment-table table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.investment-table th,
+.investment-table td {
+    padding: 1.2rem;
+    text-align: left;
+    font-size: 0.95rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(77, 184, 184, 0.1);
+}
+
+.investment-table th {
+    background: linear-gradient(to bottom, rgba(18, 99, 221, 0.25), rgba(18, 99, 221, 0.15));
+    font-weight: 600;
+    color: var(--accent-secondary);
+    font-size: 1rem;
+    padding: 1.4rem 1.2rem;
+    position: sticky;
+    top: 0;
+}
+
+.investment-table tr {
+    transition: background-color 0.2s ease;
+}
+
+.investment-table tr:hover {
+    background-color: rgba(18, 99, 221, 0.05);
+}
+
+.player-card-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 1.5rem;
+}
+
+.player-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.player-card-image {
+    height: 10rem;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.player-card-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.player-info-row {
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+    padding: 0.5rem 0;
+}
+
+.player-info-item {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+}
+
+.player-info-label {
+    color: var(--text-secondary);
+    margin-bottom: 0.3rem;
+}
+
+.player-info-value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.positive {
+    color: var(--positive);
+    font-weight: 600;
+}
+
+.negative {
+    color: var(--negative);
+    font-weight: 600;
+}
+
+/* Action buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.update-btn, .delete-btn {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.update-btn {
+    background-color: rgba(18, 99, 221, 0.2);
+    color: var(--accent-primary);
+}
+
+.update-btn:hover {
+    background-color: rgba(18, 99, 221, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(18, 99, 221, 0.15);
+}
+
+.delete-btn {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: var(--negative);
+}
+
+.delete-btn:hover {
+    background-color: rgba(244, 67, 54, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(244, 67, 54, 0.15);
+}
+
+/* Update Form Row */
+.update-row {
+    background-color: rgba(30, 30, 30, 0.9);
+}
+
+.update-row td {
+    padding: 0 !important;
+    border: none !important;
+}
+
+.update-cell {
+    padding: 1.8rem;
+    background-color: rgba(20, 20, 20, 0.8);
+    border-radius: 0 0 8px 8px;
+}
+
+.update-form-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    align-items: flex-end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+    color: var(--text-secondary);
+}
+
+.update-cell input[type="number"] {
+    width: 100%;
+    padding: 0.9rem;
+    border: 1px solid rgba(77, 184, 184, 0.2);
+    background: rgba(30, 30, 30, 0.7);
+    color: var(--text-primary);
+    border-radius: 6px;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.update-cell button {
+    padding: 0.9rem 1.5rem;
+    border: none;
+    background: linear-gradient(135deg, var(--accent-primary), #0a4cb5);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(10, 76, 181, 0.2);
+}
+
+.update-cell button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(10, 76, 181, 0.3);
+}
+
+.update-cell button.cancel-btn {
+    background: linear-gradient(135deg, #555, #333);
+    margin-left: 0;
+    margin-top: 0.5rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.update-btn, .delete-btn {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.update-btn {
+    background: rgba(18, 99, 221, 0.2);
+    color: var(--accent-primary);
+}
+
+.update-btn:hover {
+    background: rgba(18, 99, 221, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(18, 99, 221, 0.15);
+}
+
+.delete-btn {
+    background: rgba(244, 67, 54, 0.9);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: rgba(220, 50, 40, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(244, 67, 54, 0.15);
+}
+
+/* Update Form */
+.update-row td {
+    padding: 0;
+    border: none;
+    background: rgba(35, 35, 35, 0.8);
+}
+
+.update-form-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 3rem;
+    padding: 1.25rem;
+    align-items: flex-end;
+}
+
+.update-form-container .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.update-form-container label {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+    color: var(--text-secondary);
+}
+
+.update-form-container input {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid rgba(77, 184, 184, 0.2);
+    background: rgba(30, 30, 30, 0.7);
+    color: var(--text-primary);
+    border-radius: 50px;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.update-form-container input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(18, 99, 221, 0.3);
+    background: rgba(40, 40, 40, 0.8);
+}
+
+.form-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-self: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+.upd-submit-btn, .cancel-btn {
+    padding: 0.9rem 1.5rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.upd-submit-btn {
+    background: linear-gradient(135deg, var(--accent-primary), #0a4cb5);
+    color: white;
+}
+
+.cancel-btn {
+    background: linear-gradient(135deg, #555, #333);
+    color: white;
+}
+
+.upd-submit-btn:hover, .cancel-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .update-form-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-buttons {
+        align-self: stretch;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .update-btn, .delete-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .investment-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .autocomplete-container {
+        grid-column: 1 / -1;
+    }
+    
+    .update-form-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .investment-container {
+        max-width: 100%;
+        padding: 0 1.5rem 2rem;
+    }
+    
+    .investment-table {
+        padding: 1rem;
+    }
+    
+    .investment-table th,
+    .investment-table td {
+        padding: 1rem;
+    }
+    
+    .player-card-image {
+        width: 65px;
+        height: 65px;
+    }
+}
+
+@media (max-width: 768px) {
+    .portfolio-summary {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .investment-hero {
+        padding: 3rem 1.5rem 2rem;
+    }
+    
+    .investment-hero .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .investment-form {
+        grid-template-columns: 1fr;
+    }
+    
+    .player-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .player-info-row {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .portfolio-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .investment-hero {
+        margin-top: 40px;
+        padding: 2rem 1rem;
+    }
+    
+    .investment-form {
+        padding: 1.2rem;
+    }
+    
+    .investment-table {
+        padding: 0.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .player-card-cell {
+        padding: 1rem;
+    }
+}
