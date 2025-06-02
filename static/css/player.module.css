@@ -393,3 +393,60 @@ main {
         grid-template-columns: 1fr;
     }
 }
+
+
+.player-page-container {
+    position: relative;
+    
+  }
+
+
+.back-button {
+position: absolute;
+top: 2rem;
+right: 2rem;
+
+/* Use your accent-primary blue for the background */
+background-color: var(--accent-primary);
+
+/* White text so it pops against the blue */
+color: #ffffff;
+
+/* Round it into a pill shape */
+border-radius: 9999px;
+
+/* Remove default border/outline */
+border: none;
+outline: none;
+
+/* Padding controls the “height” of the pill and left/right spacing */
+padding: 0.5rem 1rem;
+
+/* Increase the font size slightly for readability */
+font-size: 1rem;
+font-weight: 500;
+
+/* Add a subtle box‐shadow so it looks slightly lifted off the page */
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+/* Pointer on hover */
+cursor: pointer;
+
+/* Smooth transition for hover effects */
+transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+
+.back-button:hover {
+background-color: rgb(15, 50, 174); /* a slightly darker shade of #1263dd */
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+transform: translateY(-1px);
+}
+
+
+.back-button:active {
+    /* When pressed, move it down 1px and reduce the shadow for a “pressed” feel */
+    background-color: rgb(10, 40, 140); /* even darker */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    transform: translateY(1px);
+  }
