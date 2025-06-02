@@ -2,14 +2,17 @@ from flask import Flask, render_template, request, jsonify, abort
 import pandas as pd
 import io
 import firebase_admin
-from firebase_admin import storage
+from firebase_admin import credentials, storage
 import time
 import threading
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
+cred = credentials.Certificate("serviceAccountKey.json")
+
 # Initialize Firebase
-firebase_admin.initialize_app(options={
+firebase_admin.initialize_app(cred, {
     "storageBucket": "theshow-587b1.firebasestorage.app"
 })
 bucket = storage.bucket()

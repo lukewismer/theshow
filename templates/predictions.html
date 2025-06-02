@@ -28,7 +28,6 @@
         </div>
 
         {# ========== Column‐toggle dropdowns ========== #}
-        {# These dropdowns remain the same; each <input> has data-key="..." and is checked only if part of default_keys #}
         {% set default_keys = [
             'card','name','ovr','delta_rank_pred','confidence_percentage',
             'market_price','qs_pred','predicted_profit', 'predicted_profit_pct'
@@ -36,10 +35,13 @@
 
         <div class="column-dropdowns">
           <!-- Details Dropdown -->
-          <details class="column-dropdown">
-            <summary>Details</summary>
+          <details class="column-dropdown column-toggle" data-group="details">
+            <summary>Details ▾</summary>
             <div class="dropdown-content">
-              <input type="text" class="column-search" placeholder="Search Details..." data-group="details">
+              <input type="text"
+                     class="column-search"
+                     placeholder="Search Details..."
+                     data-group="details">
               <div class="column-group" data-group="details">
                 {% for key,label in [
                   ("card","Card"),("name","Name"),("team","Team"),
@@ -59,10 +61,13 @@
           </details>
 
           <!-- Attributes Dropdown -->
-          <details class="column-dropdown">
-            <summary>Attributes</summary>
+          <details class="column-dropdown column-toggle" data-group="attributes">
+            <summary>Attributes ▾</summary>
             <div class="dropdown-content">
-              <input type="text" class="column-search" placeholder="Search Attributes..." data-group="attributes">
+              <input type="text"
+                     class="column-search"
+                     placeholder="Search Attributes..."
+                     data-group="attributes">
               <div class="column-group" data-group="attributes">
                 {% for key,label in [
                   ("stamina","Stamina"),("pitching_clutch","Pitching Clutch"),("hits_per_bf","Hits/BF"),
@@ -89,10 +94,13 @@
           </details>
 
           <!-- Predictions Dropdown -->
-          <details class="column-dropdown">
-            <summary>Predictions</summary>
+          <details class="column-dropdown column-toggle" data-group="predictions">
+            <summary>Predictions ▾</summary>
             <div class="dropdown-content">
-              <input type="text" class="column-search" placeholder="Search Predictions..." data-group="predictions">
+              <input type="text"
+                     class="column-search"
+                     placeholder="Search Predictions..."
+                     data-group="predictions">
               <div class="column-group" data-group="predictions">
                 <strong>Overall Rank</strong>
                 {% for key,label in [
@@ -123,10 +131,13 @@
           </details>
 
           <!-- Market Dropdown -->
-          <details class="column-dropdown">
-            <summary>Market</summary>
+          <details class="column-dropdown column-toggle" data-group="market">
+            <summary>Market ▾</summary>
             <div class="dropdown-content">
-              <input type="text" class="column-search" placeholder="Search Market..." data-group="market">
+              <input type="text"
+                     class="column-search"
+                     placeholder="Search Market..."
+                     data-group="market">
               <div class="column-group" data-group="market">
                 {% for key,label in [
                   ("qs_actual","Current QS"),("qs_pred_low","QS Predicted Low"),("qs_pred","QS Predicted"),("qs_pred_high","QS Predicted High"),
@@ -145,10 +156,13 @@
           </details>
 
           <!-- Hitter Stats Dropdown -->
-          <details class="column-dropdown">
-            <summary>Hitter Stats</summary>
+          <details class="column-dropdown column-toggle" data-group="hitter_stats">
+            <summary>Hitter Stats ▾</summary>
             <div class="dropdown-content">
-              <input type="text" class="column-search" placeholder="Search Hitter Stats..." data-group="hitter_stats">
+              <input type="text"
+                     class="column-search"
+                     placeholder="Search Hitter Stats..."
+                     data-group="hitter_stats">
               <div class="column-group" data-group="hitter_stats">
                 <strong>Season</strong>
                 {% for key,label in [
@@ -219,12 +233,15 @@
               </div>
             </div>
           </details>
-          
+
           <!-- Pitcher Stats Dropdown -->
-          <details class="column-dropdown">
-            <summary>Pitcher Stats</summary>
+          <details class="column-dropdown column-toggle" data-group="pitcher_stats">
+            <summary>Pitcher Stats ▾</summary>
             <div class="dropdown-content">
-              <input type="text" class="column-search" placeholder="Search Pitcher Stats..." data-group="pitcher_stats">
+              <input type="text"
+                     class="column-search"
+                     placeholder="Search Pitcher Stats..."
+                     data-group="pitcher_stats">
               <div class="column-group" data-group="pitcher_stats">
                 <strong>Season</strong>
                 {% for key,label in [
@@ -242,7 +259,7 @@
                     {{ label }}
                   </label>
                 {% endfor %}
-                
+
                 <strong>3-Week</strong>
                 {% for key,label in [
                   ("3wk_ovr_GP","GP"),("3wk_ovr_IP","IP"),("3wk_ovr_H","H"),("3wk_ovr_ER","ER"),("3wk_ovr_HR","HR"),
@@ -259,7 +276,7 @@
                     {{ label }}
                   </label>
                 {% endfor %}
-                
+
                 <strong>1-Week</strong>
                 {% for key,label in [
                   ("1wk_ovr_GP","GP"),("1wk_ovr_IP","IP"),("1wk_ovr_H","H"),("1wk_ovr_ER","ER"),("1wk_ovr_HR","HR"),
@@ -324,11 +341,11 @@
               data-uuid="{{ player.uuid }}"
             >
               {# Only default nine <td> cells #}
-                <td data-key="card">
-                    <a href="{{ url_for('player', uuid=player.uuid) }}">
-                      <img src="{{ player.baked_img }}" alt="{{ player.name }}" class="card-icon">
-                    </a>
-                </td>
+              <td data-key="card">
+                <a href="{{ url_for('player', uuid=player.uuid) }}">
+                  <img src="{{ player.baked_img }}" alt="{{ player.name }}" class="card-icon">
+                </a>
+              </td>
               <td data-key="name">{{ player.name }}</td>
               <td data-key="ovr">{{ player.ovr }}</td>
               <td data-key="delta_rank_pred" class="prediction-value">

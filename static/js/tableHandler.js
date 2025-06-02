@@ -400,5 +400,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
+    document.querySelectorAll('.column-toggle').forEach(detailsElem => {
+      const groupName  = detailsElem.getAttribute('data-group');
+      const summaryBtn = detailsElem.querySelector('summary');
+      const checkboxes = Array.from(
+        document.querySelectorAll(`.column-group[data-group="${groupName}"] input[type="checkbox"]`)
+      );
+  
+      const refreshButtonState = () => {
+        const anyChecked = checkboxes.some(cb => cb.checked);
+        if (anyChecked) {
+          summaryBtn.classList.add('filter-active');
+        } else {
+          summaryBtn.classList.remove('filter-active');
+        }
+      };
+  
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+          refreshButtonState();
+        });
+      });
+  
+      // On initial page load, highlight if any box is already checked
+      refreshButtonState();
+    });
   });
   

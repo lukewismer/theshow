@@ -554,3 +554,34 @@
         min-width: 100%;
     }
 }
+
+
+
+
+
+
+
+/* --------------------------------------------------------------------------------
+   1) This class will be applied to the <summary> (the “button”) whenever
+      at least one option inside its dropdown is checked.
+   2) Feel free to tweak the RGBA or border color to match your theme.
+-------------------------------------------------------------------------------- */
+.filter-active {
+    /* light green background to show “active filter” state */
+    background-color: rgba(56, 161, 105, 0.15) !important;
+    
+    /* green border on the bottom (or you can use outline) */
+    border-bottom: 2px solid var(--positive) !important;
+  }
+  
+  /* If you want the text/icon inside the summary to also turn green: */
+  .column-toggle summary.filter-active {
+    color: var(--positive) !important;
+  }
+  
+  /* (Optional) add a subtle “lift” so it pops out a bit when active */
+  .column-toggle summary.filter-active:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(56,161,105,0.4);
+  }
+  
