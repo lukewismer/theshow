@@ -585,3 +585,32 @@
     box-shadow: 0 2px 6px rgba(56,161,105,0.4);
   }
   
+
+
+
+.clear-filters {
+/* float to the right so it sits at top‐right of .dropdown-content */
+float: right;
+
+/* remove default button background & border */
+background: transparent;
+border: none;
+
+/* use your “positive” (green) variable for text */
+color: var(--accent-primary);
+
+/* match the dropdown’s font-size (or tweak as needed) */
+font-size: 1rem;
+
+/* add a little padding for a bigger click area */
+padding: 0.25rem 0.5rem;
+
+/* pointer cursor indicates it’s clickable */
+cursor: pointer;
+}
+
+/* Slight transparency on hover so the user sees feedback */
+.clear-filters:hover {
+    opacity: 0.75;
+    color: var(--accent-primary);
+  }
