@@ -273,7 +273,7 @@
         {% if player.is_hitter %}
           {% for attr in ['contact_left', 'contact_right', 'power_left', 'power_right', 'plate_vision', 'plate_discipline'] %}
             {% set current = player.get(attr, 0) %}
-            {% set predicted = player.get(attr + '_new', current) %}
+            {% set predicted = player.get(attr + '_new_pred', current) %}
             {% set delta = predicted - current %}
             <tr>
               <td>{{ attr.replace('_', ' ').title() }}</td>
@@ -287,7 +287,7 @@
         {% else %}
           {% for attr in ['stamina', 'pitching_clutch', 'hits_per_bf', 'k_per_bf', 'bb_per_bf', 'hr_per_bf'] %}
             {% set current = player.get(attr, 0) %}
-            {% set predicted = player.get(attr + '_new', current) %}
+            {% set predicted = player.get(attr + '_new_pred', current) %}
             {% set delta = predicted - current %}
             <tr>
               <td>{{ attr.replace('_', ' ').title() }}</td>

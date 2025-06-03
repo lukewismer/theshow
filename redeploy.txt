@@ -1,0 +1,10 @@
+gcloud builds submit \
+  --tag gcr.io/theshow-587b1/diamondinsights-flask
+
+gcloud run deploy diamondinsights-service \
+  --image gcr.io/theshow-587b1/diamondinsights-flask \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+
+firebase deploy --only hosting

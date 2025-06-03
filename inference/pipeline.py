@@ -25,7 +25,7 @@ def run(cache_dir="./inference/"):
 
     pid_csv = resolve_ids(ls_csv, year, cache_dir)
 
-    merged_csv = merge_updates(pid_csv, year, cache_dir)
+    merged_csv = merge_updates(pid_csv, 0, cache_dir)
 
     fetcher     = StatsFetcher()
     hitter_csv  = os.path.join(cache_dir, "hitter_stats_cur.csv")
