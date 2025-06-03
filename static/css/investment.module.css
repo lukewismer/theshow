@@ -126,33 +126,12 @@
     grid-column: 1 / -1;
 }
 
-.autocomplete-input {
-    padding: 0.9rem 1.4rem;
-    border-radius: 50px;
-    border: 1px solid rgba(77, 184, 184, 0.2);
-    background: rgba(30, 30, 30, 0.6);
-    color: var(--text-primary);
-    width: 100%;
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.autocomplete-input:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(18, 99, 221, 0.3);
-    background: rgba(40, 40, 40, 0.8);
-}
-
 .autocomplete-items {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    border: 1px solid rgba(77, 184, 184, 0.2);
+    border: 1px solid; /*rgba(77, 184, 184, 0.2);*/
     background: rgba(45, 45, 45, 0.98);
     z-index: 1000;
     max-height: 300px;
@@ -684,3 +663,19 @@
         padding: 1rem;
     }
 }
+
+.autocomplete-container {
+    /* 0 = do not grow beyond flex-basis, 1 = allow shrinking if needed, 250px = ideal width */
+    flex: 0 1 250px;
+    max-width: 250px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* 2) Make the <input> fill its wrapper but never overflow */
+  #player-search-input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
