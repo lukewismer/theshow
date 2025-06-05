@@ -30,7 +30,7 @@
         <a href="{{ url_for('index') }}" class="nav-link {% if active_page=='index' %}active{% endif %}">Home</a>
         <a href="{{ url_for('predictions') }}" class="nav-link {% if active_page=='predictions' %}active{% endif %}">Predictions</a>
         <a href="{{ url_for('investment') }}" class="nav-link {% if active_page=='investment' %}active{% endif %}">Investment Tracker</a>
-        <a href="#community" class="nav-link">Community</a>
+        <a href="{{ url_for('community') }}" class="nav-link {% if active_page=='community' %}active{% endif %}">Community</a>
       </div>
     
       <!-- Search container will now be centered -->

@@ -104,6 +104,10 @@ def investment():
 def account():
     return render_template("account.html")
 
+@app.route("/community")
+def community():
+    return render_template("community.html")
+
 @app.context_processor
 def inject_active_page():
     return {'active_page': request.endpoint}

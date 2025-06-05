@@ -1,0 +1,171 @@
+/* community.module.css */
+/* community.module.css */
+/* community.module.css */
+/* community.module.css */
+/* community.module.css */
+:root {
+    --bg-dark: #1a1a1a;
+    --bg-secondary: rgba(40, 40, 40, 0.7);
+    --border: rgba(77, 184, 184, 0.15);
+    --accent-primary: #1263dd;
+    --accent-secondary: #e5e4e2;
+    --text-primary: #e8e8e8;
+    --text-secondary: #b0b0b0;
+  }
+  
+  .community-container {
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+  }
+  
+  
+  
+  /* ─── Tabs ────────────────────────────────────────────────────────────── */
+  .community-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(30, 30, 30, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 50px;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    margin-top: 1rem;
+  }
+  
+  
+  .tab-button {
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .tab-button.active {
+    background: linear-gradient(135deg, var(--accent-primary), #0a4cb5);
+    color: white;
+    box-shadow: 0 0 15px rgba(18, 99, 221, 0.5);
+  }
+  
+  .tab-button:hover {
+    color: white;
+    transform: translateY(-2px);
+  }
+  
+  /* ─── Content Areas ───────────────────────────────────────────────────── */
+  .tab-content {
+    display: block;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  .chat-container,
+  .coming-soon,
+  .login-prompt {
+    background: linear-gradient(145deg, rgba(40, 40, 40, 0.7), rgba(30, 30, 30, 0.7));
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .chat-container::before,
+  .coming-soon::before,
+  .login-prompt::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+  }
+  
+  /* ─── Specific Components ─────────────────────────────────────────────── */
+  .chat-placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .login-prompt {
+    text-align: center;
+  }
+  
+  .login-prompt a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .login-prompt a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px rgba(18, 99, 221, 0.5);
+  }
+  
+  .coming-soon {
+    text-align: center;
+  }
+  
+  .coming-soon h2 {
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  .pulsing-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--accent-primary);
+    animation: pulse 2s infinite ease-in-out;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+  
+  /* ─── Responsive ──────────────────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .community-tabs {
+      flex-direction: column;
+      border-radius: 0.5rem;
+      gap: 0.25rem;
+      background: rgba(20, 20, 20, 0.9);
+    }
+    
+    .tab-button {
+      justify-content: center;
+      padding: 0.75rem;
+    }
+    
+    .chat-container,
+    .coming-soon,
+    .login-prompt {
+      padding: 1.5rem;
+    }
+  }

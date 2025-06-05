@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block styles %}
+  <!-- Page‐specific stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/community.module.css') }}">
+  <style>
+    /* Cosmic background and base styles */
+    html {
+      height: 100%;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0c1a2d, #0d0f1a);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-top: 80px; /* For fixed navbar */
+      margin: 0;
+    }
+
+    /* Main content wrapper */
+    .content-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Floating orbs */
+    .floating-orb {
+      position: fixed;
+      animation: float 15s infinite ease-in-out;
+      opacity: 0.15;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(20px);
+    }
+    .orb-1 {
+      width: 150px;
+      height: 150px;
+      top: 20%;
+      left: 10%;
+      background: radial-gradient(circle, var(--accent-primary), transparent 70%);
+      animation-delay: 0s;
+    }
+    .orb-2 {
+      width: 100px;
+      height: 100px;
+      bottom: 25%;
+      right: 15%;
+      background: radial-gradient(circle, var(--accent-secondary), transparent 70%);
+      animation-delay: 3s;
+    }
+    .orb-3 {
+      width: 200px;
+      height: 200px;
+      top: 45%;
+      right: 20%;
+      background: radial-gradient(circle, rgba(77, 184, 184, 0.5), transparent 70%);
+      filter: blur(25px);
+      animation-delay: 6s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(-20px, -20px) rotate(5deg); }
+      50% { transform: translate(10px, 20px) rotate(-5deg); }
+      75% { transform: translate(15px, -15px) rotate(3deg); }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <main class="community-container">
+    <!-- Floating background elements -->
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
+
+    <!-- Page‐specific tabs -->
+    <nav class="community-tabs">
+      <button class="tab-button active" data-tab="chat">
+        <i class="fas fa-comments"></i> Chat
+      </button>
+      <button class="tab-button" data-tab="friends">
+        <i class="fas fa-user-astronaut"></i> Friends
+      </button>
+      <button class="tab-button" data-tab="trends">
+        <i class="fas fa-chart-line"></i> Trends
+      </button>
+    </nav>
+
+    <!-- Chat Tab Content -->
+    <section id="chat" class="tab-content">
+      <div class="chat-container">
+        <p class="chat-placeholder">
+          <i class="fas fa-rocket"></i> Live chat will appear here. Once you log in, you can post messages about your investments.
+        </p>
+      </div>
+      <div class="login-prompt">
+        <p>You must <a href="{{ url_for('login') }}">log in</a> to participate in the chat.</p>
+      </div>
+    </section>
+
+    <!-- Friends Tab Content -->
+    <section id="friends" class="tab-content hidden">
+      <div class="coming-soon">
+        <div class="pulsing-icon">
+          <i class="fas fa-user-astronaut"></i>
+        </div>
+        <h2>Friends</h2>
+        <p>Coming Soon...</p>
+      </div>
+    </section>
+
+    <!-- Trends Tab Content -->
+    <section id="trends" class="tab-content hidden">
+      <div class="coming-soon">
+        <div class="pulsing-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h2>Market Trends</h2>
+        <p>Coming Soon...</p>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <!-- Load community.js as a module -->
+  <script type="module" src="{{ url_for('static', filename='js/community.js') }}"></script>
+{% endblock %}
