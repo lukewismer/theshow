@@ -29,9 +29,10 @@
   
   
   /* ─── Tabs ────────────────────────────────────────────────────────────── */
-  .community-tabs {
+
+.community-tabs {
     display: flex;
-    gap: 0.5rem;
+    justify-content: center; /* Center the buttons */
     background: rgba(30, 30, 30, 0.7);
     backdrop-filter: blur(8px);
     border-radius: 50px;
@@ -39,8 +40,10 @@
     border: 1px solid var(--border);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     margin-top: 1rem;
+    width: fit-content; /* This is the key change */
+    margin-left: auto;
+    margin-right: auto;
   }
-  
   
   .tab-button {
     background: transparent;
@@ -55,6 +58,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0; /* Prevent button shrinking */
   }
   
   .tab-button.active {
