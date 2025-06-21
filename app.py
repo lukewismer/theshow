@@ -146,7 +146,7 @@ def _reload_cache():
     pages = list(range(1, total_pages + 1))
 
     new_data = {}
-    max_workers = min(8, total_pages)
+    max_workers = min(6, total_pages)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_page = {executor.submit(fetch_page, p): p for p in pages}
 
@@ -157,8 +157,8 @@ def _reload_cache():
                 for L in result["listings"]:
                     item = L["item"]
                     new_data[item["uuid"]] = {
-                        "buy":  L.get("best_sell_price"),
-                        "sell": L.get("best_buy_price")
+                        "buy":  L.get("best_buy_price"),
+                        "sell": L.get("best_sell_price")
                     }
             else:
                 print(f"Warning: page {page_num} returned no data or failed.")
@@ -197,13 +197,14 @@ def market_price(uuid):
         info["qs_pred_high"] = qs_value(high_i)
 
     buy = info.get("buy")
-    if buy is not None:
+    sell = info.get("sell")
+    if sell is not None:
         if "qs_pred_low"  in info:
-            info["predicted_profit_low"]  = info["qs_pred_low"]  - buy
+            info["predicted_profit_low"]  = info["qs_pred_low"]  - sell
         if "qs_pred"      in info:
-            info["predicted_profit"]      = info["qs_pred"]      - buy
+            info["predicted_profit"]      = info["qs_pred"]      - sell
         if "qs_pred_high" in info:
-            info["predicted_profit_high"] = info["qs_pred_high"] - buy
+            info["predicted_profit_high"] = info["qs_pred_high"] - sell
 
         if all(k in info for k in ("predicted_profit_low",
                                    "predicted_profit",
@@ -216,12 +217,12 @@ def market_price(uuid):
             )
             info["predicted_ev_profit"] = round(ev, 2)
 
-        if "predicted_profit" in info and buy != 0:
-            pct = (info["predicted_profit"] / buy) * 100
+        if "predicted_profit" in info and sell != 0:
+            pct = (info["predicted_profit"] / sell) * 100
             info["predicted_profit_pct"] = round(pct, 2)
         else:
             info["predicted_profit_pct"] = 0.0
-        info["market_price"] = buy
+        info["market_price"] = sell
 
     return jsonify(info)
 
@@ -253,13 +254,14 @@ def player(uuid):
         info["qs_pred_high"] = qs_value(high_i)
 
     buy = info.get("buy")
-    if buy is not None:
+    sell = info.get("sell")
+    if sell is not None:
         if "qs_pred_low"  in info:
-            info["predicted_profit_low"]  = info["qs_pred_low"]  - buy
+            info["predicted_profit_low"]  = info["qs_pred_low"]  - sell
         if "qs_pred"      in info:
-            info["predicted_profit"]      = info["qs_pred"]      - buy
+            info["predicted_profit"]      = info["qs_pred"]      - sell
         if "qs_pred_high" in info:
-            info["predicted_profit_high"] = info["qs_pred_high"] - buy
+            info["predicted_profit_high"] = info["qs_pred_high"] - sell
 
         if all(k in info for k in ("predicted_profit_low",
                                    "predicted_profit",
@@ -272,25 +274,25 @@ def player(uuid):
             )
             info["predicted_ev_profit"] = ev
 
-        if "predicted_profit" in info and buy != 0:
-            pct = (info["predicted_profit"] / buy) * 100
+        if "predicted_profit" in info and sell != 0:
+            pct = (info["predicted_profit"] / sell) * 100
             info["predicted_profit_pct"] = round(pct, 2)
         else:
             info["predicted_profit_pct"] = 0.0
 
-        if "predicted_profit_low" in info and buy != 0:
-            pct = (info["predicted_profit_low"] / buy) * 100
+        if "predicted_profit_low" in info and sell != 0:
+            pct = (info["predicted_profit_low"] / sell) * 100
             info["predicted_profit_pct_low"] = round(pct, 2)
         else:
             info["predicted_profit_pct_low"] = 0.0
 
-        if "predicted_profit_high" in info and buy != 0:
-            pct = (info["predicted_profit_high"] / buy) * 100
+        if "predicted_profit_high" in info and sell != 0:
+            pct = (info["predicted_profit_high"] / sell) * 100
             info["predicted_profit_pct_high"] = round(pct, 2)
         else:
             info["predicted_profit_pct_high"] = 0.0
         
-        info["market_price"] = buy
+        info["market_price"] = sell
 
     merged = player.copy()
     merged.update(info)
